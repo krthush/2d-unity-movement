@@ -1,4 +1,9 @@
-﻿using UnityEngine;
+﻿/*
+ * Script adjusts player's intended displacement(moveAmount) to correct displacement based on collision detection
+ * Collision happen with objects with the relevant layermask
+ */
+
+using UnityEngine;
 using System.Collections;
 
 public class PlayerMovementController : RaycastController
@@ -7,14 +12,12 @@ public class PlayerMovementController : RaycastController
 	public float maxSlopeAngle = 80;
 
 	public CollisionInfo collisions;
-	[HideInInspector]
-	public Vector2 playerInput;
+	[HideInInspector] public Vector2 playerInput;
 
 	public override void Start()
 	{
 		base.Start();
 		collisions.faceDir = 1;
-
 	}
 
 	public void Move(Vector2 moveAmount, bool standingOnPlatform)
@@ -66,14 +69,17 @@ public class PlayerMovementController : RaycastController
 
 		for (int i = 0; i < horizontalRayCount; i++)
 		{
+			// Send out rays to check for collisions for given layer in y dir, starting based on whether travelling up/down
 			Vector2 rayOrigin = (directionX == -1) ? raycastOrigins.bottomLeft : raycastOrigins.bottomRight;
+			// TODO: adjustment of rayOrigin by movement in y dir should be done, but since moveAmount.y is calculated after moveAmount.x its not possible
+			// This creates slign miss alignment on hoz ray casts, but doesn't noticably seem to affect movement
 			rayOrigin += Vector2.up * (horizontalRaySpacing * i);
 			RaycastHit2D hit = Physics2D.Raycast(rayOrigin, Vector2.right * directionX, rayLength, collisionMask);
 
-			Debug.DrawRay(rayOrigin, Vector2.right * directionX, Color.red);
-
 			if (hit)
 			{
+				// Shows green ray if hit detected
+				Debug.DrawRay(rayOrigin, Vector2.right * directionX, Color.green);
 
 				if (hit.distance == 0)
 				{
@@ -101,7 +107,9 @@ public class PlayerMovementController : RaycastController
 
 				if (!collisions.climbingSlope || slopeAngle > maxSlopeAngle)
 				{
+					// Move player to just before the hit ray
 					moveAmount.x = (hit.distance - skinWidth) * directionX;
+					// Adjust ray length to make sure future rays don't lead to further movement past current hit
 					rayLength = hit.distance;
 
 					if (collisions.climbingSlope)
@@ -112,6 +120,10 @@ public class PlayerMovementController : RaycastController
 					collisions.left = directionX == -1;
 					collisions.right = directionX == 1;
 				}
+			} else
+			{
+				// Draw remaining rays being checked
+				Debug.DrawRay(rayOrigin, Vector2.right * directionX, Color.red);
 			}
 		}
 	}
@@ -123,15 +135,17 @@ public class PlayerMovementController : RaycastController
 
 		for (int i = 0; i < verticalRayCount; i++)
 		{
-
+			// Send out rays to check for collisions for given layer in y dir, starting based on whether travelling up/down
 			Vector2 rayOrigin = (directionY == -1) ? raycastOrigins.bottomLeft : raycastOrigins.topLeft;
+			// Note additional distance from movement in x dir needed to adjust rayOrigin correctly
 			rayOrigin += Vector2.right * (verticalRaySpacing * i + moveAmount.x);
 			RaycastHit2D hit = Physics2D.Raycast(rayOrigin, Vector2.up * directionY, rayLength, collisionMask);
 
-			Debug.DrawRay(rayOrigin, Vector2.up * directionY, Color.red);
-
 			if (hit)
 			{
+				// Shows green ray if hit detected
+				Debug.DrawRay(rayOrigin, Vector2.up * directionY, Color.green);
+
 				if (hit.collider.tag == "Through")
 				{
 					if (directionY == 1 || hit.distance == 0)
@@ -149,8 +163,10 @@ public class PlayerMovementController : RaycastController
 						continue;
 					}
 				}
-
+				
+				// Move player to just before the hit ray
 				moveAmount.y = (hit.distance - skinWidth) * directionY;
+				// Adjust ray length to make sure future rays don't lead to further movement past current hit
 				rayLength = hit.distance;
 
 				if (collisions.climbingSlope)
@@ -160,6 +176,11 @@ public class PlayerMovementController : RaycastController
 
 				collisions.below = directionY == -1;
 				collisions.above = directionY == 1;
+			}
+			else
+			{
+				// Draw remaining rays being checked
+				Debug.DrawRay(rayOrigin, Vector2.up * directionY, Color.red);
 			}
 		}
 
@@ -264,6 +285,9 @@ public class PlayerMovementController : RaycastController
 		collisions.fallingThroughPlatform = false;
 	}
 
+	/// <summary>
+	/// Contains information about location of collisions and slope/platform falling
+	/// </summary>
 	public struct CollisionInfo
 	{
 		public bool above, below;

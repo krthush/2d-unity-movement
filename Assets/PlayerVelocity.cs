@@ -1,5 +1,10 @@
-﻿using UnityEngine;
-using System.Collections;
+﻿/*
+ * Script gets player's intended velocity + displacement after factoring adjustable enviroment modifiers, user input is taken from PlayerInput
+ * See for equations/physics: https://en.wikipedia.org/wiki/Equations_of_motion
+ * See: http://lolengine.net/blog/2011/12/14/understanding-motion-in-games for Verlet integration vs. Euler
+ */
+
+using UnityEngine;
 
 [RequireComponent(typeof(PlayerMovementController))]
 public class PlayerVelocity : MonoBehaviour
@@ -37,6 +42,7 @@ public class PlayerVelocity : MonoBehaviour
 	{
 		playerMovementController = GetComponent<PlayerMovementController>();
 
+		// see suvat calculations; s = ut + 1/2at^2, v^2 = u^2 + 2at, where u=0, scalar looking at only y dir
 		gravity = -(2 * maxJumpHeight) / Mathf.Pow(timeToJumpApex, 2);
 		maxJumpVelocity = Mathf.Abs(gravity) * timeToJumpApex;
 		minJumpVelocity = Mathf.Sqrt(2 * Mathf.Abs(gravity) * minJumpHeight);
@@ -47,7 +53,11 @@ public class PlayerVelocity : MonoBehaviour
 		CalculateVelocity();
 		HandleWallSliding();
 
-		playerMovementController.Move((velocity + oldVelocity) * 0.5f * Time.deltaTime, directionalInput);
+		// r = r0 + 1/2(v+v0)t, note Vector version used here
+		// moveAmount = 1/2(v+v0)t since the playerMovementController uses Translate which moves from r0
+		Vector3 moveAmount = (velocity + oldVelocity) * 0.5f * Time.deltaTime;
+		// Move player using movement controller which checks for collisions then applies correct transform (displacement)
+		playerMovementController.Move(moveAmount, directionalInput);
 
 		if (playerMovementController.collisions.above || playerMovementController.collisions.below)
 		{
@@ -64,9 +74,12 @@ public class PlayerVelocity : MonoBehaviour
 
 	void CalculateVelocity()
 	{
+		// suvat; s = ut, note a=0
 		float targetVelocityX = directionalInput.x * moveSpeed;
 		oldVelocity = velocity;
-		velocity.x = Mathf.SmoothDamp(velocity.x, targetVelocityX, ref velocityXSmoothing, (playerMovementController.collisions.below) ? accelerationTimeGrounded : accelerationTimeAirborne);
+		// ms when player is on the ground faster vs. in air
+		float smoothTime = (playerMovementController.collisions.below) ? accelerationTimeGrounded : accelerationTimeAirborne;
+		velocity.x = Mathf.SmoothDamp(velocity.x, targetVelocityX, ref velocityXSmoothing, smoothTime);
 		velocity.y += gravity * Time.deltaTime;
 	}
 
@@ -106,7 +119,7 @@ public class PlayerVelocity : MonoBehaviour
 
 	}
 
-	/* Public Functions used by Player Input script */
+	/* Public Functions used by PlayerInput script */
 
 	public void SetDirectionalInput(Vector2 input)
 	{
