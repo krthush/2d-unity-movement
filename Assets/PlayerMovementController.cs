@@ -43,11 +43,11 @@ public class PlayerMovementController : RaycastController
 			collisions.faceDir = (int)Mathf.Sign(moveAmount.x);
 		}
 
-		HorizontalCollisions(ref moveAmount);
-		if (moveAmount.y != 0)
+        HorizontalCollisions(ref moveAmount);
+        if (moveAmount.y != 0)
 		{
-			VerticalCollisions(ref moveAmount);
-		}
+            VerticalCollisions(ref moveAmount);
+        }
 
 		transform.Translate(moveAmount);
 
@@ -94,18 +94,9 @@ public class PlayerMovementController : RaycastController
 					if (collisions.descendingSlope)
 					{
 						collisions.descendingSlope = false;
-						moveAmount = collisions.moveAmountOld;
-					}
-					float distanceToSlopeStart = 0;
-					if (slopeAngle != collisions.slopeAngleOld)
-					{
-						// Only use moveAmount.x for ClimbSlope once slope has been reached fully (hit.distance reaches 0)
-						distanceToSlopeStart = hit.distance - skinWidth;
-						moveAmount.x -= distanceToSlopeStart * directionX;
+						//moveAmount = collisions.moveAmountOld;
 					}
 					ClimbSlope(ref moveAmount, slopeAngle, hit.normal);
-					// Return moveAmount.x to original value
-					moveAmount.x += distanceToSlopeStart * directionX;
 				}
 
 				if (!collisions.climbingSlope || slopeAngle > maxSlopeAngle)
@@ -115,6 +106,7 @@ public class PlayerMovementController : RaycastController
 					// Adjust ray length to make sure future rays don't lead to further movement past current hit
 					rayLength = hit.distance;
 
+					// Apparent problem arises if slow down during slope rise - check if different speeds used in future
 					//moveAmount.x = Mathf.Min(Mathf.Abs(moveAmount.x), (hit.distance - skinWidth)) * directionX;
 					//rayLength = Mathf.Min(Mathf.Abs(moveAmount.x) + skinWidth, hit.distance);
 
