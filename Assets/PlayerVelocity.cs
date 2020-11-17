@@ -1,5 +1,5 @@
 ﻿/*
- * Script gets player's intended velocity + displacement after factoring adjustable enviroment modifiers, user input is taken from PlayerInput
+ * Script gets player's intended velocity + displacement caused by enviroment variables + user input which is taken from PlayerInput
  * See for equations/physics: https://en.wikipedia.org/wiki/Equations_of_motion
  * See: http://lolengine.net/blog/2011/12/14/understanding-motion-in-games for Verlet integration vs. Euler
  */
@@ -13,9 +13,9 @@ public class PlayerVelocity : MonoBehaviour
 	public float maxJumpHeight = 4;
 	public float minJumpHeight = 1;
 	public float timeToJumpApex = .4f;
-	float accelerationTimeAirborne = .2f;
-	float accelerationTimeGrounded = .1f;
-	float moveSpeed = 6;
+	public float accelerationTimeAirborne = .2f;
+	public float accelerationTimeGrounded = .1f;
+	public float moveSpeed = 6;
 
 	public Vector2 wallJumpClimb;
 	public Vector2 wallJumpOff;
@@ -151,7 +151,8 @@ public class PlayerVelocity : MonoBehaviour
 			if (playerMovementController.collisions.slidingDownMaxSlope)
 			{
 				if (directionalInput.x != -Mathf.Sign(playerMovementController.collisions.slopeNormal.x))
-				{ // not jumping against max slope
+				{ 
+					// not jumping against max slope
 					velocity.y = maxJumpVelocity * playerMovementController.collisions.slopeNormal.y;
 					velocity.x = maxJumpVelocity * playerMovementController.collisions.slopeNormal.x;
 				}

@@ -1,4 +1,8 @@
-﻿using UnityEngine;
+﻿/*
+ * Class to setup needed raycasts around a BoxCollider2D player for proper collision detection
+ */
+
+using UnityEngine;
 
 [RequireComponent(typeof(BoxCollider2D))]
 public class RaycastController : MonoBehaviour

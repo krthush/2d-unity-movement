@@ -1,6 +1,6 @@
 ﻿/*
  * Script adjusts player's intended displacement(moveAmount) to correct displacement based on collision detection
- * Collision happen with objects with the relevant layermask
+ * Collision happens with objects with the relevant layermask
  */
 
 using UnityEngine;
@@ -47,6 +47,7 @@ public class PlayerMovementController : RaycastController
         if (moveAmount.y != 0)
 		{
             VerticalCollisions(ref moveAmount);
+			// Also check change in slope and adjust moveAmount to prevent staggered movement between angle change
 			if (collisions.climbingSlope)
 			{
 				CheckChangeInSlope(ref moveAmount);
@@ -278,7 +279,6 @@ public class PlayerMovementController : RaycastController
 
 	void SlideDownMaxSlope(RaycastHit2D hit, ref Vector2 moveAmount)
 	{
-
 		if (hit)
 		{
 			float slopeAngle = Vector2.Angle(hit.normal, Vector2.up);
@@ -291,7 +291,6 @@ public class PlayerMovementController : RaycastController
 				collisions.slopeNormal = hit.normal;
 			}
 		}
-
 	}
 
 	void ResetFallingThroughPlatform()
