@@ -88,6 +88,7 @@ public class PlayerMovementController : RaycastController
 
 				float slopeAngle = Vector2.Angle(hit.normal, Vector2.up);
 
+				// Calc slope movement logic when first ray hit is an allowed angled
 				if (i == 0 && slopeAngle <= maxSlopeAngle)
 				{
 					if (collisions.descendingSlope)
@@ -98,10 +99,12 @@ public class PlayerMovementController : RaycastController
 					float distanceToSlopeStart = 0;
 					if (slopeAngle != collisions.slopeAngleOld)
 					{
+						// Only use moveAmount.x for ClimbSlope once slope has been reached fully (hit.distance reaches 0)
 						distanceToSlopeStart = hit.distance - skinWidth;
 						moveAmount.x -= distanceToSlopeStart * directionX;
 					}
 					ClimbSlope(ref moveAmount, slopeAngle, hit.normal);
+					// Return moveAmount.x to original value
 					moveAmount.x += distanceToSlopeStart * directionX;
 				}
 
@@ -112,6 +115,10 @@ public class PlayerMovementController : RaycastController
 					// Adjust ray length to make sure future rays don't lead to further movement past current hit
 					rayLength = hit.distance;
 
+					//moveAmount.x = Mathf.Min(Mathf.Abs(moveAmount.x), (hit.distance - skinWidth)) * directionX;
+					//rayLength = Mathf.Min(Mathf.Abs(moveAmount.x) + skinWidth, hit.distance);
+
+					// Adjust y accordingly using tan(angle) = O/A, to sit correctly on slope when wall hit
 					if (collisions.climbingSlope)
 					{
 						moveAmount.y = Mathf.Tan(collisions.slopeAngle * Mathf.Deg2Rad) * Mathf.Abs(moveAmount.x);
@@ -169,6 +176,7 @@ public class PlayerMovementController : RaycastController
 				// Adjust ray length to make sure future rays don't lead to further movement past current hit
 				rayLength = hit.distance;
 
+				// Adjust x accordingly using tan(angle) = O/A, to prevent further climbing when ceiling hit
 				if (collisions.climbingSlope)
 				{
 					moveAmount.x = moveAmount.y / Mathf.Tan(collisions.slopeAngle * Mathf.Deg2Rad) * Mathf.Sign(moveAmount.x);
@@ -204,11 +212,17 @@ public class PlayerMovementController : RaycastController
 		}
 	}
 
+	/// <summary>
+	/// Use of trig and use intended x dir speed, for moveDistance up slope (H)
+	/// Then work out climbmoveAmountY (O) with Sin(angle)=O/H
+	/// And work out climbmoveAmountX (A) with Cos(angle)=A/H
+	/// </summary>
 	void ClimbSlope(ref Vector2 moveAmount, float slopeAngle, Vector2 slopeNormal)
 	{
 		float moveDistance = Mathf.Abs(moveAmount.x);
 		float climbmoveAmountY = Mathf.Sin(slopeAngle * Mathf.Deg2Rad) * moveDistance;
 
+		// Check if player is jumping already before climbing
 		if (moveAmount.y <= climbmoveAmountY)
 		{
 			moveAmount.y = climbmoveAmountY;
