@@ -47,6 +47,10 @@ public class PlayerMovementController : RaycastController
         if (moveAmount.y != 0)
 		{
             VerticalCollisions(ref moveAmount);
+			if (collisions.climbingSlope)
+			{
+				CheckChangeInSlope(ref moveAmount);
+			}
         }
 
 		transform.Translate(moveAmount);
@@ -94,8 +98,8 @@ public class PlayerMovementController : RaycastController
 					if (collisions.descendingSlope)
 					{
 						collisions.descendingSlope = false;
-						//moveAmount = collisions.moveAmountOld;
-					}
+                        moveAmount = collisions.moveAmountOld;
+                    }
 					ClimbSlope(ref moveAmount, slopeAngle, hit.normal);
 				}
 
@@ -183,25 +187,6 @@ public class PlayerMovementController : RaycastController
 				Debug.DrawRay(rayOrigin, Vector2.up * directionY, Color.red);
 			}
 		}
-
-		if (collisions.climbingSlope)
-		{
-			float directionX = Mathf.Sign(moveAmount.x);
-			rayLength = Mathf.Abs(moveAmount.x) + skinWidth;
-			Vector2 rayOrigin = ((directionX == -1) ? raycastOrigins.bottomLeft : raycastOrigins.bottomRight) + Vector2.up * moveAmount.y;
-			RaycastHit2D hit = Physics2D.Raycast(rayOrigin, Vector2.right * directionX, rayLength, collisionMask);
-
-			if (hit)
-			{
-				float slopeAngle = Vector2.Angle(hit.normal, Vector2.up);
-				if (slopeAngle != collisions.slopeAngle)
-				{
-					moveAmount.x = (hit.distance - skinWidth) * directionX;
-					collisions.slopeAngle = slopeAngle;
-					collisions.slopeNormal = hit.normal;
-				}
-			}
-		}
 	}
 
 	/// <summary>
@@ -223,6 +208,29 @@ public class PlayerMovementController : RaycastController
 			collisions.climbingSlope = true;
 			collisions.slopeAngle = slopeAngle;
 			collisions.slopeNormal = slopeNormal;
+		}
+	}
+
+	/// <summary>
+	/// Fire additional ray to check if there is about to be change in slope angle in the next frame
+	/// Adjust moveAmount.x in advance so that there is a smooth transition
+	/// </summary>
+	void CheckChangeInSlope(ref Vector2 moveAmount)
+	{
+		float directionX = Mathf.Sign(moveAmount.x);
+		float rayLength = Mathf.Abs(moveAmount.x) + skinWidth;
+		Vector2 rayOrigin = ((directionX == -1) ? raycastOrigins.bottomLeft : raycastOrigins.bottomRight) + Vector2.up * moveAmount.y;
+		RaycastHit2D hit = Physics2D.Raycast(rayOrigin, Vector2.right * directionX, rayLength, collisionMask);
+
+		if (hit)
+		{
+			float slopeAngle = Vector2.Angle(hit.normal, Vector2.up);
+			if (slopeAngle != collisions.slopeAngle)
+			{
+				moveAmount.x = (hit.distance - skinWidth) * directionX;
+				collisions.slopeAngle = slopeAngle;
+				collisions.slopeNormal = hit.normal;
+			}
 		}
 	}
 
