@@ -1,4 +1,4 @@
-# 2dMechanicsPlayground
+# 2d Mechanics Playground
 
 Unity project focused on building solid foundation for 2d movement.
 
