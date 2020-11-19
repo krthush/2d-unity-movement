@@ -6,32 +6,30 @@
 using UnityEngine;
 using System.Collections;
 
-public class PlayerMovement : PlayerRaycasts
+public class PlayerMovement : BoxRaycasts
 {
 
-	public float maxSlopeAngle = 80;
+	private const float wallAngle = 90;
+	private const float wallTolerence = 1;
+	[SerializeField] [Range(0f, wallAngle - wallTolerence)] private float maxSlopeAngle = 80;
 
 	[HideInInspector] public CollisionDirection collisionDirection;
 	[HideInInspector] public CollisionAngle collisionAngle;
 	[HideInInspector] public Vector2 playerInput;
-	[HideInInspector] public bool slidingDownMaxSlope;
+	[HideInInspector] public bool slidingDownMaxSlope = false;
+	[HideInInspector] public bool forceFall = false;
 
 	private int faceDirection = 1;
-	private bool fallingThroughPlatform = false;
-	private bool climbingSlope;
-	private bool descendingSlope;
+	private bool fallThroughPlatform = false;
+	private bool ascendSlope = false;
+	private bool descendSlope = false;
 
 	public override void Start()
 	{
 		base.Start();
 	}
 
-	public void Move(Vector2 displacement, bool standingOnPlatform)
-	{
-		Move(displacement, Vector2.zero, standingOnPlatform);
-	}
-
-	public void Move(Vector2 displacement, Vector2 input, bool standingOnPlatform = false)
+	public void Move(Vector2 displacement, Vector2 input)
 	{
 		ResetDetection();
 
@@ -39,7 +37,7 @@ public class PlayerMovement : PlayerRaycasts
 
 		if (displacement.y < 0)
 		{
-			DescendSlope(ref displacement);
+			CheckSlopeDescent(ref displacement);
 		}
 
 		if (displacement.x != 0)
@@ -47,12 +45,12 @@ public class PlayerMovement : PlayerRaycasts
 			faceDirection = (int)Mathf.Sign(displacement.x);
 		}
 
-        HorizontalCollisions(ref displacement);
+        CheckHorizontalCollisions(ref displacement);
         if (displacement.y != 0)
 		{
-            VerticalCollisions(ref displacement);
+            CheckVerticalCollisions(ref displacement);
 			// Also check change in slope and adjust displacement to prevent staggered movement between angle change
-			if (climbingSlope)
+			if (ascendSlope)
 			{
 				CheckChangeInSlope(ref displacement);
 			}
@@ -60,9 +58,10 @@ public class PlayerMovement : PlayerRaycasts
 
 		transform.Translate(displacement);
 
-		if (standingOnPlatform)
+		// Reset grounded variables
+		if (collisionDirection.below == true)
 		{
-			collisionDirection.below = true;
+			forceFall = false;
 		}
 	}
 
@@ -71,12 +70,12 @@ public class PlayerMovement : PlayerRaycasts
 		UpdateRaycastOrigins();
 		collisionDirection.Reset();
 		collisionAngle.Reset();
-		climbingSlope = false;
-		descendingSlope = false;
+		ascendSlope = false;
+		descendSlope = false;
 		slidingDownMaxSlope = false;
 	}
 
-	void HorizontalCollisions(ref Vector2 displacement)
+	void CheckHorizontalCollisions(ref Vector2 displacement)
 	{
 		float directionX = faceDirection;
 		float rayLength = Mathf.Abs(displacement.x) + skinWidth;
@@ -111,14 +110,14 @@ public class PlayerMovement : PlayerRaycasts
 				// Calc slope movement logic when first ray hit is an allowed angled
 				if (i == 0 && slopeAngle <= maxSlopeAngle)
 				{
-					if (descendingSlope)
+					if (descendSlope)
 					{
-						descendingSlope = false;
+						descendSlope = false;
                     }
-					ClimbSlope(ref displacement, slopeAngle, hit.normal);
+					CheckSlopeAscent(ref displacement, slopeAngle);
 				}
 
-				if (!climbingSlope || slopeAngle > maxSlopeAngle)
+				if (!ascendSlope || slopeAngle > maxSlopeAngle)
 				{
 					// Move player to just before the hit ray
 					displacement.x = (hit.distance - skinWidth) * directionX;
@@ -130,7 +129,7 @@ public class PlayerMovement : PlayerRaycasts
 					//rayLength = Mathf.Min(Mathf.Abs(displacement.x) + skinWidth, hit.distance);
 
 					// Adjust y accordingly using tan(angle) = O/A, to sit correctly on slope when wall hit
-					if (climbingSlope)
+					if (ascendSlope)
 					{
 						displacement.y = Mathf.Tan(collisionAngle.slopeAngle * Mathf.Deg2Rad) * Mathf.Abs(displacement.x);
 					}
@@ -146,7 +145,7 @@ public class PlayerMovement : PlayerRaycasts
 		}
 	}
 
-	void VerticalCollisions(ref Vector2 displacement)
+	void CheckVerticalCollisions(ref Vector2 displacement)
 	{
 		float directionY = Mathf.Sign(displacement.y);
 		float rayLength = Mathf.Abs(displacement.y) + skinWidth;
@@ -170,13 +169,13 @@ public class PlayerMovement : PlayerRaycasts
 					{
 						continue;
 					}
-					if (fallingThroughPlatform)
+					if (fallThroughPlatform)
 					{
 						continue;
 					}
 					if (playerInput.y == -1)
 					{
-						fallingThroughPlatform = true;
+						fallThroughPlatform = true;
 						Invoke("ResetFallingThroughPlatform", .5f);
 						continue;
 					}
@@ -187,8 +186,8 @@ public class PlayerMovement : PlayerRaycasts
 				// Adjust ray length to make sure future rays don't lead to further movement past current hit
 				rayLength = hit.distance;
 
-				// Adjust x accordingly using tan(angle) = O/A, to prevent further climbing when ceiling hit
-				if (climbingSlope)
+				// Adjust x accordingly using tan(angle) = O/A, to prevent further ascend when ceiling hit
+				if (ascendSlope)
 				{
 					displacement.x = displacement.y / Mathf.Tan(collisionAngle.slopeAngle * Mathf.Deg2Rad) * Mathf.Sign(displacement.x);
 				}
@@ -202,26 +201,27 @@ public class PlayerMovement : PlayerRaycasts
 				Debug.DrawRay(rayOrigin, Vector2.up * directionY, Color.red);
 			}
 		}
+
 	}
 
 	/// <summary>
-	/// Use of trig and use intended x dir speed, for moveDistance up slope (H)
-	/// Then work out climbdisplacementY (O) with Sin(angle)=O/H
-	/// And work out climbdisplacementX (A) with Cos(angle)=A/H
+	/// Use of trig to work out X/Y components of displacement up slope
 	/// </summary>
-	void ClimbSlope(ref Vector2 displacement, float slopeAngle, Vector2 slopeNormal)
+	void CheckSlopeAscent(ref Vector2 displacement, float slopeAngle)
 	{
+		/// Use intended x dir speed for moveDistance (H) up slope 
 		float moveDistance = Mathf.Abs(displacement.x);
-		float climbdisplacementY = Mathf.Sin(slopeAngle * Mathf.Deg2Rad) * moveDistance;
+		/// Work out ascendDisplacementY (O) with Sin(angle)=O/H
+		float ascendDisplacementY = Mathf.Sin(slopeAngle * Mathf.Deg2Rad) * moveDistance;
 
-		// Check if player is jumping already before climbing
-		if (displacement.y <= climbdisplacementY)
+		// Check if player is jumping already before ascend
+		if (displacement.y <= ascendDisplacementY)
 		{
-			displacement.y = climbdisplacementY;
+			displacement.y = ascendDisplacementY;
+			/// Work out ascendDisplacementX (A) with Cos(angle)=A/H
 			displacement.x = Mathf.Cos(slopeAngle * Mathf.Deg2Rad) * moveDistance * Mathf.Sign(displacement.x);
 			collisionDirection.below = true;
-			climbingSlope = true;
-			collisionAngle.setSlopeAngle(slopeAngle, slopeNormal);
+			ascendSlope = true;
 		}
 	}
 
@@ -247,59 +247,72 @@ public class PlayerMovement : PlayerRaycasts
 		}
 	}
 
-	void DescendSlope(ref Vector2 displacement)
+	/// <summary>
+	/// Use of trig to work out X/Y components of displacement down slope
+	/// Additional checks done for max slope descent
+	/// </summary>
+	void CheckSlopeDescent(ref Vector2 displacement)
 	{
-
+		// Check for max slope angle hits, XOR ensures only on side checked at a time
 		RaycastHit2D maxSlopeHitLeft = Physics2D.Raycast(raycastOrigins.bottomLeft, Vector2.down, Mathf.Abs(displacement.y) + skinWidth, collisionMask);
 		RaycastHit2D maxSlopeHitRight = Physics2D.Raycast(raycastOrigins.bottomRight, Vector2.down, Mathf.Abs(displacement.y) + skinWidth, collisionMask);
 		if (maxSlopeHitLeft ^ maxSlopeHitRight)
 		{
-			SlideDownMaxSlope(maxSlopeHitLeft, ref displacement);
-			SlideDownMaxSlope(maxSlopeHitRight, ref displacement);
+			if (maxSlopeHitLeft)
+			{
+				SlideDownMaxSlope(maxSlopeHitLeft, ref displacement);
+			} else
+            {
+				SlideDownMaxSlope(maxSlopeHitRight, ref displacement);
+			}
 		}
 
 		if (!slidingDownMaxSlope)
 		{
 			float directionX = Mathf.Sign(displacement.x);
 			Vector2 rayOrigin = (directionX == -1) ? raycastOrigins.bottomRight : raycastOrigins.bottomLeft;
+			// Cast ray downwards infinitly to check for slope
 			RaycastHit2D hit = Physics2D.Raycast(rayOrigin, -Vector2.up, Mathf.Infinity, collisionMask);
 
 			if (hit)
 			{
 				float slopeAngle = Vector2.Angle(hit.normal, Vector2.up);
 				collisionAngle.setSlopeAngle(slopeAngle, hit.normal);
-				if (slopeAngle != 0 && slopeAngle <= maxSlopeAngle)
-				{
-					if (Mathf.Sign(hit.normal.x) == directionX)
-					{
-						if (hit.distance - skinWidth <= Mathf.Tan(slopeAngle * Mathf.Deg2Rad) * Mathf.Abs(displacement.x))
-						{
-							float moveDistance = Mathf.Abs(displacement.x);
-							float descenddisplacementY = Mathf.Sin(slopeAngle * Mathf.Deg2Rad) * moveDistance;
-							displacement.x = Mathf.Cos(slopeAngle * Mathf.Deg2Rad) * moveDistance * Mathf.Sign(displacement.x);
-							displacement.y -= descenddisplacementY;
 
-							descendingSlope = true;
-							collisionDirection.below = true;
-						}
-					}
+				bool descendableSlope = slopeAngle != 0 && slopeAngle <= maxSlopeAngle;
+				bool moveInSlopeDirection = Mathf.Sign(hit.normal.x) == directionX;
+				// Calculate accordingly using tan(angle) = O/A, to prevent further falling when slope hit
+				bool fallingToSlope = hit.distance - skinWidth <= Mathf.Tan(slopeAngle * Mathf.Deg2Rad) * Mathf.Abs(displacement.x);
+
+				if (descendableSlope && moveInSlopeDirection && fallingToSlope)
+				{
+					/// Use intended x dir speed for moveDistance (H) down slope 
+					float moveDistance = Mathf.Abs(displacement.x);
+					/// Work out descendDisplacementY (O) with Sin(angle)=O/H
+					float descendDisplacementY = Mathf.Sin(slopeAngle * Mathf.Deg2Rad) * moveDistance;
+					/// Work out descendDisplacementX (A) with Cos(angle)=A/H
+					displacement.x = Mathf.Cos(slopeAngle * Mathf.Deg2Rad) * moveDistance * Mathf.Sign(displacement.x);
+					displacement.y -= descendDisplacementY;
+
+					descendSlope = true;
+					collisionDirection.below = true;
 				}
 			}
 		}
 	}
 
+	/// <summary>
+	/// Slides down slope based on gravity component affecting y (O), if slopeAngle > maxSlopeAngle
+	/// </summary>
 	void SlideDownMaxSlope(RaycastHit2D hit, ref Vector2 displacement)
 	{
-		if (hit)
+		float slopeAngle = Vector2.Angle(hit.normal, Vector2.up);
+		collisionAngle.setSlopeAngle(slopeAngle, hit.normal);
+		if (slopeAngle > maxSlopeAngle && slopeAngle < wallAngle - wallTolerence)
 		{
-			float slopeAngle = Vector2.Angle(hit.normal, Vector2.up);
-			collisionAngle.setSlopeAngle(slopeAngle, hit.normal);
-			if (slopeAngle > maxSlopeAngle)
-			{
-				displacement.x = Mathf.Sign(hit.normal.x) * (Mathf.Abs(displacement.y) - hit.distance) / Mathf.Tan(slopeAngle * Mathf.Deg2Rad);
-
-				slidingDownMaxSlope = true;
-			}
+			// Calculate accordingly using tan(angle) = O / A, to slide on slope, where x (A)
+			displacement.x = Mathf.Sign(hit.normal.x) * (Mathf.Abs(displacement.y) - hit.distance) / Mathf.Tan(slopeAngle * Mathf.Deg2Rad);
+			slidingDownMaxSlope = true;
 		}
 	}
 
@@ -325,24 +338,22 @@ public class PlayerMovement : PlayerRaycasts
 	{
 		public float slopeAngle;
 		public Vector2 slopeNormal;
-		public bool wallHit;
-
-		const float wallAngle = 90;
+		public bool onWall;
 
 		public void Reset()
 		{
 			slopeAngle = 0;
 			slopeNormal = Vector2.zero;
-			wallHit = false;
+			onWall = false;
 		}
 
 		public void setSlopeAngle(float angle, Vector2 normal)
 		{
 			slopeAngle = angle;
 			slopeNormal = normal;
-			if (slopeAngle == wallAngle)
+			if (wallAngle - wallTolerence < slopeAngle && slopeAngle < wallAngle + wallTolerence)
 			{
-				wallHit = true;
+				onWall = true;
 			}
 		}
 	}

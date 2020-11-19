@@ -24,5 +24,9 @@ public class PlayerInput : MonoBehaviour
 		{
 			playerVelocity.OnJumpInputUp();
 		}
+		if (Input.GetKeyDown(KeyCode.S))
+		{
+			playerVelocity.OnFallInputDown();
+		}
 	}
 }

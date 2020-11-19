@@ -10,21 +10,22 @@ using UnityEngine;
 public class PlayerVelocity : MonoBehaviour
 {
 
-	public float maxJumpHeight = 4;
-	public float minJumpHeight = 1;
-	public float timeToJumpApex = .4f;
-	public float accelerationTimeAirborne = .2f;
-	public float accelerationTimeGrounded = .1f;
-	public float moveSpeed = 6;
+	[SerializeField] private float maxJumpHeight = 4;
+	[SerializeField] private float minJumpHeight = 1;
+	[SerializeField] private float timeToJumpApex = .4f;
+	[SerializeField] private float accelerationTimeAirborne = .2f;
+	[SerializeField] private float accelerationTimeGrounded = .1f;
+	[SerializeField] private float moveSpeed = 6;
+	[SerializeField] private float forceFallSpeed = 20;
 
-	public Vector2 wallJumpClimb;
-	public Vector2 wallJumpOff;
-	public Vector2 wallLeap;
+	[SerializeField] private Vector2 wallJumpClimb;
+	[SerializeField] private Vector2 wallJumpOff;
+	[SerializeField] private Vector2 wallLeap;
 
-	public float wallSlideSpeedMax = 3;
-	public float wallStickTime = .25f;
+	[SerializeField] private float wallSlideSpeedMax = 3;
+	[SerializeField] private float wallStickTime = .25f;
+
 	float timeToWallUnstick;
-
 	float gravity;
 	float maxJumpVelocity;
 	float minJumpVelocity;
@@ -82,8 +83,8 @@ public class PlayerVelocity : MonoBehaviour
 		// ms when player is on the ground faster vs. in air
 		float smoothTime = (playerMovement.collisionDirection.below) ? accelerationTimeGrounded : accelerationTimeAirborne;
 		velocity.x = Mathf.SmoothDamp(velocity.x, targetVelocityX, ref velocityXSmoothing, smoothTime);
-		velocity.y += gravity * Time.deltaTime;
-	}
+        velocity.y += gravity * Time.deltaTime;
+    }
 
 	void HandleWallSliding()
 	{
@@ -91,11 +92,11 @@ public class PlayerVelocity : MonoBehaviour
 		bool horizontalCollision = playerMovement.collisionDirection.left || playerMovement.collisionDirection.right;
 		bool falling = !playerMovement.collisionDirection.below && velocity.y < 0;
 
-		if (horizontalCollision && falling)
+		if (horizontalCollision && falling && !playerMovement.forceFall && playerMovement.collisionAngle.onWall)
 		{
 			wallSliding = true;
 
-			if (directionalInput.x == wallDirX && playerMovement.collisionAngle.wallHit)
+			if (directionalInput.x == wallDirX)
             {
 				velocity.y = 0;
 			} 
@@ -184,5 +185,11 @@ public class PlayerVelocity : MonoBehaviour
 		{
 			velocity.y = minJumpVelocity;
 		}
+	}
+
+	public void OnFallInputDown()
+    {
+		velocity.y = -forceFallSpeed;
+		playerMovement.forceFall = true;
 	}
 }
