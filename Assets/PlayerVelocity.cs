@@ -6,7 +6,7 @@
 
 using UnityEngine;
 
-[RequireComponent(typeof(PlayerMovementController))]
+[RequireComponent(typeof(PlayerMovement))]
 public class PlayerVelocity : MonoBehaviour
 {
 
@@ -32,7 +32,7 @@ public class PlayerVelocity : MonoBehaviour
 	Vector3 oldVelocity;
 	float velocityXSmoothing;
 
-	PlayerMovementController playerMovementController;
+	PlayerMovement playerMovement;
 
 	Vector2 directionalInput;
 	bool wallSliding;
@@ -40,7 +40,7 @@ public class PlayerVelocity : MonoBehaviour
 
 	void Start()
 	{
-		playerMovementController = GetComponent<PlayerMovementController>();
+		playerMovement = GetComponent<PlayerMovement>();
 
 		// see suvat calculations; s = ut + 1/2at^2, v^2 = u^2 + 2at, where u=0, scalar looking at only y dir
 		gravity = -(2 * maxJumpHeight) / Mathf.Pow(timeToJumpApex, 2);
@@ -54,16 +54,18 @@ public class PlayerVelocity : MonoBehaviour
 		HandleWallSliding();
 
 		// r = r0 + 1/2(v+v0)t, note Vector version used here
-		// moveAmount = 1/2(v+v0)t since the playerMovementController uses Translate which moves from r0
-		Vector3 moveAmount = (velocity + oldVelocity) * 0.5f * Time.deltaTime;
+		// displacement = 1/2(v+v0)t since the playerMovementController uses Translate which moves from r0
+		Vector3 displacement = (velocity + oldVelocity) * 0.5f * Time.deltaTime;
 		// Move player using movement controller which checks for collisions then applies correct transform (displacement)
-		playerMovementController.Move(moveAmount, directionalInput);
+		playerMovement.Move(displacement, directionalInput);
 
-		if (playerMovementController.collisions.above || playerMovementController.collisions.below)
+		bool verticalCollision = playerMovement.collisions.above || playerMovement.collisions.below;
+
+		if (verticalCollision)
 		{
-			if (playerMovementController.collisions.slidingDownMaxSlope)
+			if (playerMovement.collisions.slidingDownMaxSlope)
 			{
-				velocity.y += playerMovementController.collisions.slopeNormal.y * -gravity * Time.deltaTime;
+				velocity.y += playerMovement.collisions.slopeNormal.y * -gravity * Time.deltaTime;
 			}
 			else
 			{
@@ -78,25 +80,26 @@ public class PlayerVelocity : MonoBehaviour
 		float targetVelocityX = directionalInput.x * moveSpeed;
 		oldVelocity = velocity;
 		// ms when player is on the ground faster vs. in air
-		float smoothTime = (playerMovementController.collisions.below) ? accelerationTimeGrounded : accelerationTimeAirborne;
+		float smoothTime = (playerMovement.collisions.below) ? accelerationTimeGrounded : accelerationTimeAirborne;
 		velocity.x = Mathf.SmoothDamp(velocity.x, targetVelocityX, ref velocityXSmoothing, smoothTime);
 		velocity.y += gravity * Time.deltaTime;
 	}
 
 	void HandleWallSliding()
 	{
-		wallDirX = (playerMovementController.collisions.left) ? -1 : 1;
-		wallSliding = false;
+		wallDirX = (playerMovement.collisions.left) ? -1 : 1;
+		bool horizontalCollision = playerMovement.collisions.left || playerMovement.collisions.right;
+		bool falling = !playerMovement.collisions.below && velocity.y < 0;
 
-		if ((playerMovementController.collisions.left || playerMovementController.collisions.right) && !playerMovementController.collisions.below && velocity.y < 0)
+		if (horizontalCollision && falling)
 		{
 			wallSliding = true;
 
-			if (directionalInput.x == wallDirX)
+			if (directionalInput.x == wallDirX && playerMovement.collisions.wallHit)
             {
 				velocity.y = 0;
-				Debug.Log(Vector2.Angle(playerMovementController.collisions.slopeNormal, Vector2.up));
-			} else
+			} 
+			else
             {
 				if (velocity.y < -wallSlideSpeedMax)
 				{
@@ -123,6 +126,9 @@ public class PlayerVelocity : MonoBehaviour
 				}
 			}
 
+		} else
+		{
+			wallSliding = false;
 		}
 
 	}
@@ -154,15 +160,15 @@ public class PlayerVelocity : MonoBehaviour
 				velocity.y = wallLeap.y;
 			}
 		}
-		if (playerMovementController.collisions.below)
+		if (playerMovement.collisions.below)
 		{
-			if (playerMovementController.collisions.slidingDownMaxSlope)
+			if (playerMovement.collisions.slidingDownMaxSlope)
 			{
-				if (directionalInput.x != -Mathf.Sign(playerMovementController.collisions.slopeNormal.x))
+				if (directionalInput.x != -Mathf.Sign(playerMovement.collisions.slopeNormal.x))
 				{ 
 					// not jumping against max slope
-					velocity.y = maxJumpVelocity * playerMovementController.collisions.slopeNormal.y;
-					velocity.x = maxJumpVelocity * playerMovementController.collisions.slopeNormal.x;
+					velocity.y = maxJumpVelocity * playerMovement.collisions.slopeNormal.y;
+					velocity.x = maxJumpVelocity * playerMovement.collisions.slopeNormal.x;
 				}
 			}
 			else
