@@ -6,7 +6,7 @@
 using UnityEngine;
 using System.Collections;
 
-public class PlayerMovement : RaycastController
+public class PlayerMovement : PlayerCollision
 {
 
 	public float maxSlopeAngle = 80;
