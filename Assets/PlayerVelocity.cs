@@ -87,32 +87,40 @@ public class PlayerVelocity : MonoBehaviour
 	{
 		wallDirX = (playerMovementController.collisions.left) ? -1 : 1;
 		wallSliding = false;
+
 		if ((playerMovementController.collisions.left || playerMovementController.collisions.right) && !playerMovementController.collisions.below && velocity.y < 0)
 		{
 			wallSliding = true;
 
-			if (velocity.y < -wallSlideSpeedMax)
-			{
-				velocity.y = -wallSlideSpeedMax;
-			}
-
-			if (timeToWallUnstick > 0)
-			{
-				velocityXSmoothing = 0;
-				velocity.x = 0;
-
-				if (directionalInput.x != wallDirX && directionalInput.x != 0)
+			if (directionalInput.x == wallDirX)
+            {
+				velocity.y = 0;
+				Debug.Log(Vector2.Angle(playerMovementController.collisions.slopeNormal, Vector2.up));
+			} else
+            {
+				if (velocity.y < -wallSlideSpeedMax)
 				{
-					timeToWallUnstick -= Time.deltaTime;
+					velocity.y = -wallSlideSpeedMax;
+				}
+
+				if (timeToWallUnstick > 0)
+				{
+					velocityXSmoothing = 0;
+					velocity.x = 0;
+
+					if (directionalInput.x != wallDirX && directionalInput.x != 0)
+					{
+						timeToWallUnstick -= Time.deltaTime;
+					}
+					else
+					{
+						timeToWallUnstick = wallStickTime;
+					}
 				}
 				else
 				{
 					timeToWallUnstick = wallStickTime;
 				}
-			}
-			else
-			{
-				timeToWallUnstick = wallStickTime;
 			}
 
 		}
