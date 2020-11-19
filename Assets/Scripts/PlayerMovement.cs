@@ -1,21 +1,25 @@
 ﻿/*
- * Script adjusts player's intended movement i.e. displacement to correct displacement based on collision detection
+ * Script adjusts player's intended movement i.e. displacement to correct displacement based on collision detection from raycasts
  * Collision happens with objects with the relevant layermask
  */
 
 using UnityEngine;
 using System.Collections;
 
-public class PlayerMovement : PlayerCollision
+public class PlayerMovement : PlayerRaycasts
 {
 
 	public float maxSlopeAngle = 80;
 
-	public CollisionInfo collisions;
+	[HideInInspector] public CollisionDirection collisionDirection;
+	[HideInInspector] public CollisionAngle collisionAngle;
 	[HideInInspector] public Vector2 playerInput;
+	[HideInInspector] public bool slidingDownMaxSlope;
 
-	private int faceDir = 1;
+	private int faceDirection = 1;
 	private bool fallingThroughPlatform = false;
+	private bool climbingSlope;
+	private bool descendingSlope;
 
 	public override void Start()
 	{
@@ -29,9 +33,8 @@ public class PlayerMovement : PlayerCollision
 
 	public void Move(Vector2 displacement, Vector2 input, bool standingOnPlatform = false)
 	{
-		UpdateRaycastOrigins();
+		ResetDetection();
 
-		collisions.Reset();
 		playerInput = input;
 
 		if (displacement.y < 0)
@@ -41,7 +44,7 @@ public class PlayerMovement : PlayerCollision
 
 		if (displacement.x != 0)
 		{
-			faceDir = (int)Mathf.Sign(displacement.x);
+			faceDirection = (int)Mathf.Sign(displacement.x);
 		}
 
         HorizontalCollisions(ref displacement);
@@ -49,7 +52,7 @@ public class PlayerMovement : PlayerCollision
 		{
             VerticalCollisions(ref displacement);
 			// Also check change in slope and adjust displacement to prevent staggered movement between angle change
-			if (collisions.climbingSlope)
+			if (climbingSlope)
 			{
 				CheckChangeInSlope(ref displacement);
 			}
@@ -59,13 +62,23 @@ public class PlayerMovement : PlayerCollision
 
 		if (standingOnPlatform)
 		{
-			collisions.below = true;
+			collisionDirection.below = true;
 		}
+	}
+
+	void ResetDetection()
+	{
+		UpdateRaycastOrigins();
+		collisionDirection.Reset();
+		collisionAngle.Reset();
+		climbingSlope = false;
+		descendingSlope = false;
+		slidingDownMaxSlope = false;
 	}
 
 	void HorizontalCollisions(ref Vector2 displacement)
 	{
-		float directionX = faceDir;
+		float directionX = faceDirection;
 		float rayLength = Mathf.Abs(displacement.x) + skinWidth;
 
 		if (Mathf.Abs(displacement.x) < skinWidth)
@@ -93,19 +106,19 @@ public class PlayerMovement : PlayerCollision
 				}
 
 				float slopeAngle = Vector2.Angle(hit.normal, Vector2.up);
-				collisions.setSlopeAngle(slopeAngle, hit.normal);
+				collisionAngle.setSlopeAngle(slopeAngle, hit.normal);
 
 				// Calc slope movement logic when first ray hit is an allowed angled
 				if (i == 0 && slopeAngle <= maxSlopeAngle)
 				{
-					if (collisions.descendingSlope)
+					if (descendingSlope)
 					{
-						collisions.descendingSlope = false;
+						descendingSlope = false;
                     }
 					ClimbSlope(ref displacement, slopeAngle, hit.normal);
 				}
 
-				if (!collisions.climbingSlope || slopeAngle > maxSlopeAngle)
+				if (!climbingSlope || slopeAngle > maxSlopeAngle)
 				{
 					// Move player to just before the hit ray
 					displacement.x = (hit.distance - skinWidth) * directionX;
@@ -117,13 +130,13 @@ public class PlayerMovement : PlayerCollision
 					//rayLength = Mathf.Min(Mathf.Abs(displacement.x) + skinWidth, hit.distance);
 
 					// Adjust y accordingly using tan(angle) = O/A, to sit correctly on slope when wall hit
-					if (collisions.climbingSlope)
+					if (climbingSlope)
 					{
-						displacement.y = Mathf.Tan(collisions.slopeAngle * Mathf.Deg2Rad) * Mathf.Abs(displacement.x);
+						displacement.y = Mathf.Tan(collisionAngle.slopeAngle * Mathf.Deg2Rad) * Mathf.Abs(displacement.x);
 					}
 
-					collisions.left = directionX == -1;
-					collisions.right = directionX == 1;
+					collisionDirection.left = directionX == -1;
+					collisionDirection.right = directionX == 1;
 				}
 			} else
 			{
@@ -175,13 +188,13 @@ public class PlayerMovement : PlayerCollision
 				rayLength = hit.distance;
 
 				// Adjust x accordingly using tan(angle) = O/A, to prevent further climbing when ceiling hit
-				if (collisions.climbingSlope)
+				if (climbingSlope)
 				{
-					displacement.x = displacement.y / Mathf.Tan(collisions.slopeAngle * Mathf.Deg2Rad) * Mathf.Sign(displacement.x);
+					displacement.x = displacement.y / Mathf.Tan(collisionAngle.slopeAngle * Mathf.Deg2Rad) * Mathf.Sign(displacement.x);
 				}
 
-				collisions.below = directionY == -1;
-				collisions.above = directionY == 1;
+				collisionDirection.below = directionY == -1;
+				collisionDirection.above = directionY == 1;
 			}
 			else
 			{
@@ -206,9 +219,9 @@ public class PlayerMovement : PlayerCollision
 		{
 			displacement.y = climbdisplacementY;
 			displacement.x = Mathf.Cos(slopeAngle * Mathf.Deg2Rad) * moveDistance * Mathf.Sign(displacement.x);
-			collisions.below = true;
-			collisions.climbingSlope = true;
-			collisions.setSlopeAngle(slopeAngle, slopeNormal);
+			collisionDirection.below = true;
+			climbingSlope = true;
+			collisionAngle.setSlopeAngle(slopeAngle, slopeNormal);
 		}
 	}
 
@@ -226,11 +239,11 @@ public class PlayerMovement : PlayerCollision
 		if (hit)
 		{
 			float slopeAngle = Vector2.Angle(hit.normal, Vector2.up);
-			collisions.setSlopeAngle(slopeAngle, hit.normal);
-			if (slopeAngle != collisions.slopeAngle)
+			if (slopeAngle != collisionAngle.slopeAngle)
 			{
 				displacement.x = (hit.distance - skinWidth) * directionX;
 			}
+			collisionAngle.setSlopeAngle(slopeAngle, hit.normal);
 		}
 	}
 
@@ -245,7 +258,7 @@ public class PlayerMovement : PlayerCollision
 			SlideDownMaxSlope(maxSlopeHitRight, ref displacement);
 		}
 
-		if (!collisions.slidingDownMaxSlope)
+		if (!slidingDownMaxSlope)
 		{
 			float directionX = Mathf.Sign(displacement.x);
 			Vector2 rayOrigin = (directionX == -1) ? raycastOrigins.bottomRight : raycastOrigins.bottomLeft;
@@ -254,7 +267,7 @@ public class PlayerMovement : PlayerCollision
 			if (hit)
 			{
 				float slopeAngle = Vector2.Angle(hit.normal, Vector2.up);
-				collisions.setSlopeAngle(slopeAngle, hit.normal);
+				collisionAngle.setSlopeAngle(slopeAngle, hit.normal);
 				if (slopeAngle != 0 && slopeAngle <= maxSlopeAngle)
 				{
 					if (Mathf.Sign(hit.normal.x) == directionX)
@@ -266,8 +279,8 @@ public class PlayerMovement : PlayerCollision
 							displacement.x = Mathf.Cos(slopeAngle * Mathf.Deg2Rad) * moveDistance * Mathf.Sign(displacement.x);
 							displacement.y -= descenddisplacementY;
 
-							collisions.descendingSlope = true;
-							collisions.below = true;
+							descendingSlope = true;
+							collisionDirection.below = true;
 						}
 					}
 				}
@@ -280,28 +293,36 @@ public class PlayerMovement : PlayerCollision
 		if (hit)
 		{
 			float slopeAngle = Vector2.Angle(hit.normal, Vector2.up);
-			collisions.setSlopeAngle(slopeAngle, hit.normal);
+			collisionAngle.setSlopeAngle(slopeAngle, hit.normal);
 			if (slopeAngle > maxSlopeAngle)
 			{
 				displacement.x = Mathf.Sign(hit.normal.x) * (Mathf.Abs(displacement.y) - hit.distance) / Mathf.Tan(slopeAngle * Mathf.Deg2Rad);
 
-				collisions.slidingDownMaxSlope = true;
+				slidingDownMaxSlope = true;
 			}
 		}
 	}
 
 	/// <summary>
-	/// Contains information about location of collisions and slope/platform falling
+	/// Contains information about collision directions
 	/// </summary>
-	public struct CollisionInfo
+	public struct CollisionDirection
 	{
 		public bool above, below;
 		public bool left, right;
 
-		public bool climbingSlope;
-		public bool descendingSlope;
-		public bool slidingDownMaxSlope;
+		public void Reset()
+		{
+			above = below = false;
+			left = right = false;
+		}
+	}
 
+	/// <summary>
+	/// Contains information about collision slope
+	/// </summary>
+	public struct CollisionAngle
+	{
 		public float slopeAngle;
 		public Vector2 slopeNormal;
 		public bool wallHit;
@@ -310,13 +331,6 @@ public class PlayerMovement : PlayerCollision
 
 		public void Reset()
 		{
-			above = below = false;
-			left = right = false;
-
-			climbingSlope = false;
-			descendingSlope = false;
-			slidingDownMaxSlope = false;
-
 			slopeAngle = 0;
 			slopeNormal = Vector2.zero;
 			wallHit = false;
@@ -327,7 +341,7 @@ public class PlayerMovement : PlayerCollision
 			slopeAngle = angle;
 			slopeNormal = normal;
 			if (slopeAngle == wallAngle)
-            {
+			{
 				wallHit = true;
 			}
 		}

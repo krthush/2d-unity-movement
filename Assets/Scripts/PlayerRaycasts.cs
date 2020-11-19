@@ -5,7 +5,7 @@
 using UnityEngine;
 
 [RequireComponent(typeof(BoxCollider2D))]
-public class PlayerCollision : MonoBehaviour
+public class PlayerRaycasts : MonoBehaviour
 {
 
 	public LayerMask collisionMask;
