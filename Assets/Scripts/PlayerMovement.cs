@@ -19,10 +19,11 @@ public class PlayerMovement : BoxRaycasts
 	[HideInInspector] public bool slidingDownMaxSlope = false;
 	[HideInInspector] public bool forceFall = false;
 
-	private int faceDirection = 1;
+	private int faceDirection = 0;
 	private bool fallThroughPlatform = false;
 	private bool ascendSlope = false;
 	private bool descendSlope = false;
+	private int attemptingMaxSlopeEdgeClimb = 0;
 
 	public override void Start()
 	{
@@ -38,11 +39,21 @@ public class PlayerMovement : BoxRaycasts
 
 		playerInput = input;
 
+		// Clamp movement if trying to move into max slope edge, reset otherwise
+		if (attemptingMaxSlopeEdgeClimb != 0 && attemptingMaxSlopeEdgeClimb == Mathf.Sign(displacement.x) && displacement.y <= 0)
+		{
+			displacement.x = 0;
+		} else
+		{
+			attemptingMaxSlopeEdgeClimb = 0;
+		}
+
 		if (displacement.y < 0)
 		{
 			CheckSlopeDescent(ref displacement);
 		}
 
+		// Check face direction - done after slope descent in case of sliding down max slope
 		if (displacement.x != 0)
 		{
 			faceDirection = (int) Mathf.Sign(displacement.x);
@@ -252,12 +263,18 @@ public class PlayerMovement : BoxRaycasts
 
 		if (hit)
 		{
+			// Check angle against previous frame, if not matching move towards hit
 			float slopeAngle = Vector2.Angle(hit.normal, Vector2.up);
 			if (slopeAngle != collisionAngle.slopeAngle)
 			{
 				displacement.x = (hit.distance - skinWidth) * directionX;
 			}
 			collisionAngle.setSlopeAngle(slopeAngle, hit.normal);
+			// Check if a max slope edge is hit to clamp movement - prevent judder
+			if (slopeAngle > maxSlopeAngle)
+			{
+				attemptingMaxSlopeEdgeClimb = (int) directionX;
+			}
 		}
 	}
 
