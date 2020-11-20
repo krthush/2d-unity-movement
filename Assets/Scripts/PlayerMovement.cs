@@ -20,7 +20,7 @@ public class PlayerMovement : BoxRaycasts
 	[SerializeField] [Range(0f, wallAngle - wallTolerence)] private float maxSlopeAngle = 80;
 
 	private int faceDirection = 0;
-	private bool fallThroughPlatform = false;
+	private bool passThroughPlatform = false;
 	private bool ascendSlope = false;
 	private bool descendSlope = false;
 	private int attemptingMaxSlopeEdgeClimb = 0;
@@ -31,9 +31,17 @@ public class PlayerMovement : BoxRaycasts
 	}
 
 	/// <summary>
+	/// Moves player when on platform
+	/// </summary>
+	public void Move(Vector2 moveAmount, bool standingOnPlatform)
+	{
+		Move(moveAmount, Vector2.zero, standingOnPlatform);
+	}
+
+	/// <summary>
 	/// Checks for collisions then applies correct transform translation to move player
 	/// </summary>
-	public void Move(Vector2 displacement, Vector2 input)
+	public void Move(Vector2 displacement, Vector2 input, bool standingOnPlatform = false)
 	{
 		ResetDetection();
 
@@ -119,6 +127,11 @@ public class PlayerMovement : BoxRaycasts
 					continue;
 				}
 
+				if (hit.collider.tag == "Through")
+				{
+					break;
+				}
+
 				float slopeAngle = Vector2.Angle(hit.normal, Vector2.up);
 				collisionAngle.setSlopeAngle(slopeAngle, hit.normal);
 
@@ -192,14 +205,14 @@ public class PlayerMovement : BoxRaycasts
 					{
 						continue;
 					}
-					if (fallThroughPlatform)
+					if (passThroughPlatform)
 					{
 						continue;
 					}
 					if (playerInput.y == -1)
 					{
-						fallThroughPlatform = true;
-						Invoke("ResetFallingThroughPlatform", .5f);
+						passThroughPlatform = true;
+						Invoke("ResetPassThroughPlatform", .5f);
 						continue;
 					}
 				}
@@ -225,6 +238,11 @@ public class PlayerMovement : BoxRaycasts
 			}
 		}
 
+	}
+
+	void ResetPassThroughPlatform()
+	{
+		passThroughPlatform = false;
 	}
 
 	/// <summary>
