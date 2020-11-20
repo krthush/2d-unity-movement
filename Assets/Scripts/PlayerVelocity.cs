@@ -1,5 +1,5 @@
 ﻿/*
- * Script gets player's intended velocity + displacement caused by enviroment variables + user input which is taken from PlayerInput
+ * Script gets player's intended velocity & displacement (caused by enviroment variables + user input which is taken from PlayerInput)
  * See for equations/physics: https://en.wikipedia.org/wiki/Equations_of_motion
  * See: http://lolengine.net/blog/2011/12/14/understanding-motion-in-games for Verlet integration vs. Euler
  */
@@ -25,19 +25,19 @@ public class PlayerVelocity : MonoBehaviour
 	[SerializeField] private float wallSlideSpeedMax = 3;
 	[SerializeField] private float wallStickTime = .25f;
 
-	float timeToWallUnstick;
-	float gravity;
-	float maxJumpVelocity;
-	float minJumpVelocity;
-	Vector3 velocity;
-	Vector3 oldVelocity;
-	float velocityXSmoothing;
+	private float timeToWallUnstick;
+	private float gravity;
+	private float maxJumpVelocity;
+	private float minJumpVelocity;
+	private Vector3 velocity;
+	private Vector3 oldVelocity;
+	private float velocityXSmoothing;
 
-	PlayerMovement playerMovement;
+	private PlayerMovement playerMovement;
 
-	Vector2 directionalInput;
-	bool wallContact;
-	int wallDirX;
+	private Vector2 directionalInput;
+	private bool wallContact;
+	private int wallDirX;
 
 	void Start()
 	{

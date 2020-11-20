@@ -9,15 +9,15 @@ using System.Collections;
 public class PlayerMovement : BoxRaycasts
 {
 
-	private const float wallAngle = 90;
-	private const float wallTolerence = 1;
-	[SerializeField] [Range(0f, wallAngle - wallTolerence)] private float maxSlopeAngle = 80;
-
 	[HideInInspector] public CollisionDirection collisionDirection;
 	[HideInInspector] public CollisionAngle collisionAngle;
 	[HideInInspector] public Vector2 playerInput;
 	[HideInInspector] public bool slidingDownMaxSlope = false;
 	[HideInInspector] public bool forceFall = false;
+
+	private const float wallAngle = 90;
+	private const float wallTolerence = 1;
+	[SerializeField] [Range(0f, wallAngle - wallTolerence)] private float maxSlopeAngle = 80;
 
 	private int faceDirection = 0;
 	private bool fallThroughPlatform = false;
@@ -31,7 +31,7 @@ public class PlayerMovement : BoxRaycasts
 	}
 
 	/// <summary>
-	/// Moves player after checks for collisions then applies correct transform translation
+	/// Checks for collisions then applies correct transform translation to move player
 	/// </summary>
 	public void Move(Vector2 displacement, Vector2 input)
 	{
@@ -104,8 +104,6 @@ public class PlayerMovement : BoxRaycasts
 		{
 			// Send out rays to check for collisions for given layer in y dir, starting based on whether travelling up/down
 			Vector2 rayOrigin = (directionX == -1) ? raycastOrigins.bottomLeft : raycastOrigins.bottomRight;
-			// TODO: adjustment of rayOrigin by movement in y dir should be done, but since displacement.y is calculated after displacement.x its not possible
-			// This creates slign miss alignment on hoz ray casts, but doesn't noticably seem to affect movement
 			rayOrigin += Vector2.up * (horizontalRaySpacing * i);
 			RaycastHit2D hit = Physics2D.Raycast(rayOrigin, Vector2.right * directionX, rayLength, collisionMask);
 

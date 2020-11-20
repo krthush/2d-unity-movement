@@ -4,7 +4,7 @@
 public class PlayerInput : MonoBehaviour
 {
 
-	PlayerVelocity playerVelocity;
+	private PlayerVelocity playerVelocity;
 
 	void Start()
 	{
