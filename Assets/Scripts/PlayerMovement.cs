@@ -29,6 +29,9 @@ public class PlayerMovement : BoxRaycasts
 		base.Start();
 	}
 
+	/// <summary>
+	/// Moves player after checks for collisions then applies correct transform translation
+	/// </summary>
 	public void Move(Vector2 displacement, Vector2 input)
 	{
 		ResetDetection();
@@ -42,18 +45,19 @@ public class PlayerMovement : BoxRaycasts
 
 		if (displacement.x != 0)
 		{
-			faceDirection = (int)Mathf.Sign(displacement.x);
+			faceDirection = (int) Mathf.Sign(displacement.x);
 		}
 
         CheckHorizontalCollisions(ref displacement);
+
         if (displacement.y != 0)
 		{
             CheckVerticalCollisions(ref displacement);
 			// Also check change in slope and adjust displacement to prevent staggered movement between angle change
 			if (ascendSlope)
 			{
-				CheckChangeInSlope(ref displacement);
-			}
+                CheckChangeInSlope(ref displacement);
+            }
         }
 
 		transform.Translate(displacement);
@@ -96,6 +100,8 @@ public class PlayerMovement : BoxRaycasts
 
 			if (hit)
 			{
+				//Debug.Break();
+
 				// Shows green ray if hit detected
 				Debug.DrawRay(rayOrigin, Vector2.right * directionX, Color.green);
 
@@ -120,7 +126,15 @@ public class PlayerMovement : BoxRaycasts
 				if (!ascendSlope || slopeAngle > maxSlopeAngle)
 				{
 					// Move player to just before the hit ray
-					displacement.x = (hit.distance - skinWidth) * directionX;
+					bool wallHit = (wallAngle - wallTolerence < slopeAngle) && (slopeAngle < wallAngle + wallTolerence);
+					if (wallHit)
+					{
+						displacement.x = (hit.distance - skinWidth) * directionX;
+					} else
+					{
+						// double skin with to prevent overshooting/incorrect movement when hit a slope that is above player
+						displacement.x = (hit.distance - skinWidth * 2) * directionX;
+					}
 					// Adjust ray length to make sure future rays don't lead to further movement past current hit
 					rayLength = hit.distance;
 
@@ -302,7 +316,7 @@ public class PlayerMovement : BoxRaycasts
 	}
 
 	/// <summary>
-	/// Slides down slope based on gravity component affecting y (O), if slopeAngle > maxSlopeAngle
+	/// Slides down a non-climbable i.e. max slope based on gravity component affecting y
 	/// </summary>
 	void SlideDownMaxSlope(RaycastHit2D hit, ref Vector2 displacement)
 	{
@@ -310,14 +324,14 @@ public class PlayerMovement : BoxRaycasts
 		collisionAngle.setSlopeAngle(slopeAngle, hit.normal);
 		if (slopeAngle > maxSlopeAngle && slopeAngle < wallAngle - wallTolerence)
 		{
-			// Calculate accordingly using tan(angle) = O / A, to slide on slope, where x (A)
+			// Calculate accordingly using tan(angle) = O / A, to slide on slope, where x (A), where y (O)
 			displacement.x = Mathf.Sign(hit.normal.x) * (Mathf.Abs(displacement.y) - hit.distance) / Mathf.Tan(slopeAngle * Mathf.Deg2Rad);
 			slidingDownMaxSlope = true;
 		}
 	}
 
 	/// <summary>
-	/// Contains information about collision directions
+	/// Contains information about the most recent collision's directions
 	/// </summary>
 	public struct CollisionDirection
 	{
@@ -332,7 +346,7 @@ public class PlayerMovement : BoxRaycasts
 	}
 
 	/// <summary>
-	/// Contains information about collision slope
+	/// Contains information about the most recent collision's slope
 	/// </summary>
 	public struct CollisionAngle
 	{
@@ -351,7 +365,9 @@ public class PlayerMovement : BoxRaycasts
 		{
 			slopeAngle = angle;
 			slopeNormal = normal;
-			if (wallAngle - wallTolerence < slopeAngle && slopeAngle < wallAngle + wallTolerence)
+
+			bool wallHit = (wallAngle - wallTolerence < slopeAngle) && (slopeAngle < wallAngle + wallTolerence);
+			if (wallHit)
 			{
 				onWall = true;
 			}

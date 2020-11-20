@@ -18,8 +18,8 @@ public class PlayerVelocity : MonoBehaviour
 	[SerializeField] private float moveSpeed = 6;
 	[SerializeField] private float forceFallSpeed = 20;
 
+	[SerializeField] private Vector2 wallJump;
 	[SerializeField] private Vector2 wallJumpClimb;
-	[SerializeField] private Vector2 wallJumpOff;
 	[SerializeField] private Vector2 wallLeap;
 
 	[SerializeField] private float wallSlideSpeedMax = 3;
@@ -36,7 +36,7 @@ public class PlayerVelocity : MonoBehaviour
 	PlayerMovement playerMovement;
 
 	Vector2 directionalInput;
-	bool wallSliding;
+	bool wallContact;
 	int wallDirX;
 
 	void Start()
@@ -57,7 +57,7 @@ public class PlayerVelocity : MonoBehaviour
 		// r = r0 + 1/2(v+v0)t, note Vector version used here
 		// displacement = 1/2(v+v0)t since the playerMovementController uses Translate which moves from r0
 		Vector3 displacement = (velocity + oldVelocity) * 0.5f * Time.deltaTime;
-		// Move player using movement controller which checks for collisions then applies correct transform (displacement)
+		// Move player using movement controller which checks for collisions then applies correct transform (displacement) translation
 		playerMovement.Move(displacement, directionalInput);
 
 		bool verticalCollision = playerMovement.collisionDirection.above || playerMovement.collisionDirection.below;
@@ -90,71 +90,86 @@ public class PlayerVelocity : MonoBehaviour
 	{
 		wallDirX = (playerMovement.collisionDirection.left) ? -1 : 1;
 		bool horizontalCollision = playerMovement.collisionDirection.left || playerMovement.collisionDirection.right;
-		bool falling = !playerMovement.collisionDirection.below && velocity.y < 0;
 
-		if (horizontalCollision && falling && !playerMovement.forceFall && playerMovement.collisionAngle.onWall)
+		if (horizontalCollision && !playerMovement.collisionDirection.below && !playerMovement.forceFall && playerMovement.collisionAngle.onWall)
 		{
-			wallSliding = true;
+			wallContact = true;
 
-			if (directionalInput.x == wallDirX)
-            {
-				velocity.y = 0;
-			} 
-			else
-            {
-				if (velocity.y < -wallSlideSpeedMax)
+			// Check if falling down - only wall slide then
+			if (velocity.y < 0)
+			{
+				// Grab wall if input facing wall
+				if (directionalInput.x == wallDirX)
 				{
-					velocity.y = -wallSlideSpeedMax;
+					velocity.y = 0;
 				}
-
-				if (timeToWallUnstick > 0)
+				else
 				{
-					velocityXSmoothing = 0;
-					velocity.x = 0;
-
-					if (directionalInput.x != wallDirX && directionalInput.x != 0)
+					// Only slow down if falling faster than slide speed
+					if (velocity.y < -wallSlideSpeedMax)
 					{
-						timeToWallUnstick -= Time.deltaTime;
+						velocity.y = -wallSlideSpeedMax;
+					}
+
+					// Stick to wall until timeToWallUnstick has counted down to 0 from wallStickTime
+					if (timeToWallUnstick > 0)
+					{
+						velocityXSmoothing = 0;
+						velocity.x = 0;
+
+						if (directionalInput.x != wallDirX && directionalInput.x != 0)
+						{
+							timeToWallUnstick -= Time.deltaTime;
+						}
+						else
+						{
+							timeToWallUnstick = wallStickTime;
+						}
 					}
 					else
 					{
 						timeToWallUnstick = wallStickTime;
 					}
 				}
-				else
-				{
-					timeToWallUnstick = wallStickTime;
-				}
 			}
 
 		} else
 		{
-			wallSliding = false;
+			wallContact = false;
 		}
 
 	}
 
 	/* Public Functions used by PlayerInput script */
 
+	/// <summary>
+	/// Handle horizontal movement input
+	/// </summary>
 	public void SetDirectionalInput(Vector2 input)
 	{
 		directionalInput = input;
 	}
 
+	/// <summary>
+	/// Handle jumps
+	/// </summary>
 	public void OnJumpInputDown()
 	{
-		if (wallSliding)
+		if (wallContact)
 		{
-			if (wallDirX == directionalInput.x)
+			// Standard wall jump
+			if (directionalInput.x == 0)
+			{
+				velocity.x = -wallDirX * wallJump.x;
+				velocity.y = wallJump.y;
+			}
+			// Climb up if input is facing wall
+			else if (wallDirX == directionalInput.x)
 			{
 				velocity.x = -wallDirX * wallJumpClimb.x;
 				velocity.y = wallJumpClimb.y;
 			}
-			else if (directionalInput.x == 0)
-			{
-				velocity.x = -wallDirX * wallJumpOff.x;
-				velocity.y = wallJumpOff.y;
-			}
+			// Leap wall if input facing away from wall
 			else
 			{
 				velocity.x = -wallDirX * wallLeap.x;
@@ -165,9 +180,9 @@ public class PlayerVelocity : MonoBehaviour
 		{
 			if (playerMovement.slidingDownMaxSlope)
 			{
+				// Jumping away from max slope dir
 				if (directionalInput.x != -Mathf.Sign(playerMovement.collisionAngle.slopeNormal.x))
 				{ 
-					// not jumping against max slope
 					velocity.y = maxJumpVelocity * playerMovement.collisionAngle.slopeNormal.y;
 					velocity.x = maxJumpVelocity * playerMovement.collisionAngle.slopeNormal.x;
 				}
@@ -179,6 +194,9 @@ public class PlayerVelocity : MonoBehaviour
 		}
 	}
 
+	/// <summary>
+	/// Handle not fully commited jumps - allow for mini jumps
+	/// </summary>
 	public void OnJumpInputUp()
 	{
 		if (velocity.y > minJumpVelocity)
@@ -187,6 +205,9 @@ public class PlayerVelocity : MonoBehaviour
 		}
 	}
 
+	/// <summary>
+	/// Handle down direction - force fall
+	/// </summary>
 	public void OnFallInputDown()
     {
 		velocity.y = -forceFallSpeed;

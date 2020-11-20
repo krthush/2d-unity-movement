@@ -603,7 +603,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 519420028}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -0.00000035762787, y: 0, z: -10}
+  m_LocalPosition: {x: -0.00000023841858, y: 0, z: -10}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
@@ -1475,8 +1475,8 @@ MonoBehaviour:
   accelerationTimeGrounded: 0.1
   moveSpeed: 10
   forceFallSpeed: 20
-  wallJumpClimb: {x: 7.5, y: 16}
-  wallJumpOff: {x: 15, y: 15}
+  wallJump: {x: 0, y: 0}
+  wallJumpClimb: {x: 5, y: 15}
   wallLeap: {x: 15, y: 15}
   wallSlideSpeedMax: 3
   wallStickTime: 0
@@ -1794,7 +1794,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1643418143}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -0.00000035762787, y: 0, z: -10}
+  m_LocalPosition: {x: -0.00000023841858, y: 0, z: -10}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 1115999583}
