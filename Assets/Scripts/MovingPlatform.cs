@@ -20,7 +20,7 @@ public class MovingPlatform : BoxRaycasts
 	float nextMoveTime;
 
 	List<PassengerMovement> passengerMovement;
-	Dictionary<Transform, PlayerMovement> passengerDictionary = new Dictionary<Transform, PlayerMovement>();
+	Dictionary<Transform, PlatformMovable> passengerDictionary = new Dictionary<Transform, PlatformMovable>();
 
 	public override void Start()
 	{
@@ -97,7 +97,7 @@ public class MovingPlatform : BoxRaycasts
 		{
 			if (!passengerDictionary.ContainsKey(passenger.transform))
 			{
-				passengerDictionary.Add(passenger.transform, passenger.transform.GetComponent<PlayerMovement>());
+				passengerDictionary.Add(passenger.transform, passenger.transform.GetComponent<PlatformMovable>());
 			}
 
 			if (passenger.moveBeforePlatform == beforeMovePlatform)

@@ -31,17 +31,9 @@ public class PlayerMovement : BoxRaycasts
 	}
 
 	/// <summary>
-	/// Moves player when on platform
-	/// </summary>
-	public void Move(Vector2 moveAmount, bool standingOnPlatform)
-	{
-		Move(moveAmount, Vector2.zero, standingOnPlatform);
-	}
-
-	/// <summary>
 	/// Checks for collisions then applies correct transform translation to move player
 	/// </summary>
-	public void Move(Vector2 displacement, Vector2 input, bool standingOnPlatform = false)
+	public void Move(Vector2 displacement, Vector2 input)
 	{
 		ResetDetection();
 
