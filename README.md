@@ -21,7 +21,7 @@ W: Wall jump <br>A+W: Wall jump climb<br>D+W: Wall leap off <br> *Opposite contr
 
 **N.B. You need to enable "Auto Sync Transformations" under the Physics 2D Project Settings.**<br>
 
-If you'd like to use the scripts/project, here's a quick run down of the important scripts/variables.
+Here's a quick run down of the important scripts/variables:
 
 **Scripts:**
 
