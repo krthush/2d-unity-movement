@@ -10,17 +10,17 @@ using UnityEngine;
 public class PlayerVelocity : MonoBehaviour
 {
 
+	[SerializeField] private float moveSpeed = 6;
 	[SerializeField] private float maxJumpHeight = 4;
 	[SerializeField] private float minJumpHeight = 1;
 	[SerializeField] private float timeToJumpApex = .4f;
 	[SerializeField] private float accelerationTimeAirborne = .2f;
 	[SerializeField] private float accelerationTimeGrounded = .1f;
-	[SerializeField] private float moveSpeed = 6;
 	[SerializeField] private float forceFallSpeed = 20;
 
 	[SerializeField] private Vector2 wallJump;
 	[SerializeField] private Vector2 wallJumpClimb;
-	[SerializeField] private Vector2 wallLeap;
+	[SerializeField] private Vector2 wallLeapOff;
 
 	[SerializeField] private float wallSlideSpeedMax = 3;
 	[SerializeField] private float wallStickTime = .25f;
@@ -172,8 +172,8 @@ public class PlayerVelocity : MonoBehaviour
 			// Leap wall if input facing away from wall
 			else
 			{
-				velocity.x = -wallDirX * wallLeap.x;
-				velocity.y = wallLeap.y;
+				velocity.x = -wallDirX * wallLeapOff.x;
+				velocity.y = wallLeapOff.y;
 			}
 		}
 		if (playerMovement.collisionDirection.below)
