@@ -11,7 +11,7 @@ public class BoxColliderCasts : MonoBehaviour
 	public LayerMask collisionMask;
 
 	public float skinWidth = .015f;
-	public float dstBetweenRays = .25f;
+	public float distanceBetweenRays = .25f;
 
 	[HideInInspector] public BoxCollider2D boxCollider;
 
@@ -46,8 +46,8 @@ public class BoxColliderCasts : MonoBehaviour
 		boundsWidth = bounds.size.x;
 		boundsHeight = bounds.size.y;
 
-		horizontalRayCount = Mathf.RoundToInt(boundsHeight / dstBetweenRays);
-		verticalRayCount = Mathf.RoundToInt(boundsWidth / dstBetweenRays);
+		horizontalRayCount = Mathf.RoundToInt(boundsHeight / distanceBetweenRays);
+		verticalRayCount = Mathf.RoundToInt(boundsWidth / distanceBetweenRays);
 
 		horizontalRaySpacing = bounds.size.y / (horizontalRayCount - 1);
 		verticalRaySpacing = bounds.size.x / (verticalRayCount - 1);
