@@ -119,7 +119,7 @@ public class ObjectDisplacement : ColliderCasts
 					// Set displacement be at hit
                     displacement.x = hit.distance * directionX;
 
-                    // Adjust y accordingly using tan(angle) = O/A, to sit correctly on slope when wall hit
+                    // Adjust y accordingly using tan(angle) = O/A, to prevent further ascend when wall hit
                     if (ascendSlope)
                     {
                         displacement.y = Mathf.Tan(collisionAngle.slopeAngle * Mathf.Deg2Rad) * Mathf.Abs(displacement.x);
@@ -150,6 +150,7 @@ public class ObjectDisplacement : ColliderCasts
                 // Shows green ray if hit detected
                 Debug.DrawRay(rayOrigin, Vector2.up * directionY, Color.green);
 
+				// Allow drop/jump through "Through" platforms
                 if (hit.collider.tag == "Through")
                 {
                     if (directionY == 1 || hit.distance == 0)
