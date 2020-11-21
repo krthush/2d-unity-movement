@@ -79,7 +79,7 @@ public class ObjectDisplacement : ColliderCasts
 	void CheckHorizontalCollisions(ref Vector2 displacement)
 	{
 		float directionX = faceDirection;
-		float rayLength = Mathf.Abs(displacement.x);
+		float rayLength = Mathf.Abs(displacement.x) + skinWidth;
 
         Vector2 boxRayOrigin = (directionX == -1) ? boxCastOrigins.leftCenter : boxCastOrigins.rightCenter;
 		boxRayOrigin -= Vector2.right * directionX * skinWidth;
@@ -116,8 +116,8 @@ public class ObjectDisplacement : ColliderCasts
 
                 if (!ascendSlope || slopeAngle > maxSlopeAngle)
                 {
+					// Set displacement be at hit
                     displacement.x = hit.distance * directionX;
-                    // Adjust ray length to make sure future rays don't lead to further movement past current hit
 
                     // Adjust y accordingly using tan(angle) = O/A, to sit correctly on slope when wall hit
                     if (ascendSlope)
@@ -136,52 +136,6 @@ public class ObjectDisplacement : ColliderCasts
 	{
 		float directionY = Mathf.Sign(displacement.y);
 		float rayLength = Mathf.Abs(displacement.y) + skinWidth;
-
-        //Vector2 boxRayOrigin = (directionY == -1) ? boxCastOrigins.bottomCenter : boxCastOrigins.topCenter;
-        //boxRayOrigin -= Vector2.up * directionY * skinWidth;
-        //Vector2 boxCastSize = new Vector2(boundsWidth, skinWidth);
-        //ContactFilter2D contactFilter2D = new ContactFilter2D();
-        //contactFilter2D.SetLayerMask(collisionMask);
-        //List<RaycastHit2D> results = new List<RaycastHit2D>();
-
-        //Physics2D.BoxCast(boxRayOrigin, boxCastSize, 0, Vector2.up * directionY, contactFilter2D, results, rayLength);
-
-        //for (int i = 0; i < results.Count; i++)
-        //{
-        //	RaycastHit2D hit = results[i];
-        //	if (hit)
-        //	{
-        //		if (hit.collider.tag == "Through")
-        //		{
-        //			if (directionY == 1 || hit.distance == 0)
-        //			{
-        //				continue;
-        //			}
-        //			if (passThroughPlatform)
-        //			{
-        //				continue;
-        //			}
-        //			if (objectInput.y == -1)
-        //			{
-        //				passThroughPlatform = true;
-        //				Invoke("ResetPassThroughPlatform", .5f);
-        //				continue;
-        //			}
-        //		}
-
-        //		// Move object to just before the hit ray
-        //		displacement.y = hit.distance * directionY;
-
-        //		// Adjust x accordingly using tan(angle) = O/A, to prevent further ascend when ceiling hit
-        //		if (ascendSlope)
-        //		{
-        //			displacement.x = displacement.y / Mathf.Tan(collisionAngle.slopeAngle * Mathf.Deg2Rad) * Mathf.Sign(displacement.x);
-        //		}
-
-        //		collisionDirection.below = directionY == -1;
-        //		collisionDirection.above = directionY == 1;
-        //	}
-        //}
 
         for (int i = 0; i < verticalRayCount; i++)
         {
