@@ -1,17 +1,17 @@
 ﻿/*
- * Script adjusts player's intended movement i.e. displacement to correct displacement based on collision detection from raycasts
+ * Script adjusts object's intended displacement based on collision detection from raycasts
  * Collision happens with objects with the relevant layermask
  */
 
 using UnityEngine;
 using System.Collections;
 
-public class PlayerMovement : BoxRaycasts
+public class ObjectDisplacement : ColliderCasts
 {
 
 	[HideInInspector] public CollisionDirection collisionDirection;
 	[HideInInspector] public CollisionAngle collisionAngle;
-	[HideInInspector] public Vector2 playerInput;
+	[HideInInspector] public Vector2 objectInput;
 	[HideInInspector] public bool slidingDownMaxSlope = false;
 	[HideInInspector] public bool forceFall = false;
 
@@ -31,13 +31,13 @@ public class PlayerMovement : BoxRaycasts
 	}
 
 	/// <summary>
-	/// Checks for collisions then applies correct transform translation to move player
+	/// Checks for collisions then applies correct transform translation to move object
 	/// </summary>
 	public void Move(Vector2 displacement, Vector2 input)
 	{
 		ResetDetection();
 
-		playerInput = input;
+		objectInput = input;
 
 		// Clamp movement if trying to move into max slope edge, reset otherwise
 		if (attemptingMaxSlopeEdgeClimb != 0 && attemptingMaxSlopeEdgeClimb == Mathf.Sign(displacement.x) && displacement.y <= 0)
@@ -139,14 +139,14 @@ public class PlayerMovement : BoxRaycasts
 
 				if (!ascendSlope || slopeAngle > maxSlopeAngle)
 				{
-					// Move player to just before the hit ray
+					// Move object to just before the hit ray
 					bool wallHit = (wallAngle - wallTolerence < slopeAngle) && (slopeAngle < wallAngle + wallTolerence);
 					if (wallHit)
 					{
 						displacement.x = (hit.distance - skinWidth) * directionX;
 					} else
 					{
-						// double skin with to prevent overshooting/incorrect movement when hit a slope that is above player
+						// double skin with to prevent overshooting/incorrect movement when hit a slope that is above object
 						displacement.x = (hit.distance - skinWidth * 2) * directionX;
 					}
 					// Adjust ray length to make sure future rays don't lead to further movement past current hit
@@ -201,7 +201,7 @@ public class PlayerMovement : BoxRaycasts
 					{
 						continue;
 					}
-					if (playerInput.y == -1)
+					if (objectInput.y == -1)
 					{
 						passThroughPlatform = true;
 						Invoke("ResetPassThroughPlatform", .5f);
@@ -209,7 +209,7 @@ public class PlayerMovement : BoxRaycasts
 					}
 				}
 				
-				// Move player to just before the hit ray
+				// Move object to just before the hit ray
 				displacement.y = (hit.distance - skinWidth) * directionY;
 				// Adjust ray length to make sure future rays don't lead to further movement past current hit
 				rayLength = hit.distance;
@@ -247,7 +247,7 @@ public class PlayerMovement : BoxRaycasts
 		/// Work out ascendDisplacementY (O) with Sin(angle)=O/H
 		float ascendDisplacementY = Mathf.Sin(slopeAngle * Mathf.Deg2Rad) * moveDistance;
 
-		// Check if player is jumping already before ascend
+		// Check if object is jumping already before ascend
 		if (displacement.y <= ascendDisplacementY)
 		{
 			displacement.y = ascendDisplacementY;

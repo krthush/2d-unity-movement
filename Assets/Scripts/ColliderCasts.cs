@@ -5,7 +5,7 @@
 using UnityEngine;
 
 [RequireComponent(typeof(BoxCollider2D))]
-public class BoxRaycasts : MonoBehaviour
+public class ColliderCasts : MonoBehaviour
 {
 
 	public LayerMask collisionMask;
@@ -22,6 +22,10 @@ public class BoxRaycasts : MonoBehaviour
 	[HideInInspector] public float verticalRaySpacing;
 
 	public RaycastOrigins raycastOrigins;
+	public BoxCastOrigins boxCastOrigins;
+
+	public float boundsWidth;
+	public float boundsHeight;
 
 	public virtual void Awake()
 	{
@@ -39,8 +43,8 @@ public class BoxRaycasts : MonoBehaviour
 		// Skin width for ray detection even when boxCollider is flush against surfaces
 		bounds.Expand(skinWidth * -2);
 
-		float boundsWidth = bounds.size.x;
-		float boundsHeight = bounds.size.y;
+		boundsWidth = bounds.size.x;
+		boundsHeight = bounds.size.y;
 
 		horizontalRayCount = Mathf.RoundToInt(boundsHeight / dstBetweenRays);
 		verticalRayCount = Mathf.RoundToInt(boundsWidth / dstBetweenRays);
@@ -62,9 +66,26 @@ public class BoxRaycasts : MonoBehaviour
 		raycastOrigins.topRight = new Vector2(bounds.max.x, bounds.max.y);
 	}
 
+	public void UpdateBoxcastOrigins()
+	{
+		Bounds bounds = boxCollider.bounds;
+		// Skin width for ray detection even when boxCollider is flush against surfaces
+		bounds.Expand(skinWidth * -2);
+
+		boxCastOrigins.bottomCenter = new Vector2(bounds.center.x, bounds.min.y);
+		boxCastOrigins.topCenter = new Vector2(bounds.center.x, bounds.max.y);
+		boxCastOrigins.leftCenter = new Vector2(bounds.min.x, bounds.center.y);
+		boxCastOrigins.rightCenter = new Vector2(bounds.max.x, bounds.center.y);
+	}
+
 	public struct RaycastOrigins
 	{
-		public Vector2 topLeft, topRight;
 		public Vector2 bottomLeft, bottomRight;
+		public Vector2 topLeft, topRight;
+	}
+
+	public struct BoxCastOrigins
+	{
+		public Vector2 bottomCenter, topCenter, leftCenter, rightCenter;
 	}
 }
