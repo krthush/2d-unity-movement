@@ -6,6 +6,7 @@ TagManager:
   tags:
   - Through
   - Enemy
+  - Ally
   layers:
   - Default
   - TransparentFX
@@ -18,7 +19,7 @@ TagManager:
   - Player
   - Platforms
   - Enemies
-  - 
+  - Allies
   - 
   - 
   - 

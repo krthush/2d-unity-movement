@@ -136,6 +136,7 @@ GameObject:
   - component: {fileID: 91723764}
   - component: {fileID: 91723763}
   - component: {fileID: 91723762}
+  - component: {fileID: 91723767}
   m_Layer: 9
   m_Name: Moving Platform (1)
   m_TagString: Through
@@ -155,21 +156,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 46a83c85dde1ac249baffc29a989379a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  collisionMask:
-    serializedVersion: 2
-    m_Bits: 0
-  skinWidth: 0.015
-  dstBetweenRays: 0.25
-  boxCollider: {fileID: 0}
-  horizontalRayCount: 0
-  verticalRayCount: 0
-  horizontalRaySpacing: 0
-  verticalRaySpacing: 0
-  boundsWidth: 0
-  boundsHeight: 0
-  passengerMask:
-    serializedVersion: 2
-    m_Bits: 256
   localWaypoints:
   - {x: 0, y: 0, z: 0}
   - {x: 0, y: 2, z: 0}
@@ -266,6 +252,33 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 18
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &91723767
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 91723761}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d232c8155c3ab6a4fbd7088af4cdd349, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  collisionMask:
+    serializedVersion: 2
+    m_Bits: 0
+  skinWidth: 0.015
+  dstBetweenRays: 0.25
+  boxCollider: {fileID: 0}
+  horizontalRayCount: 0
+  verticalRayCount: 0
+  horizontalRaySpacing: 0
+  verticalRaySpacing: 0
+  boundsWidth: 0
+  boundsHeight: 0
+  passengerMask:
+    serializedVersion: 2
+    m_Bits: 256
 --- !u!1 &205740438
 GameObject:
   m_ObjectHideFlags: 0
@@ -604,7 +617,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 10303, guid: 0000000000000000f000000000000000, type: 0}
+  - {fileID: 2100000, guid: 096e5cd03e9bd5046a7b94ced2f9bcda, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -646,7 +659,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 22
+  m_RootOrder: 21
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &329857746
 MonoBehaviour:
@@ -1132,7 +1145,7 @@ GameObject:
   - component: {fileID: 674953886}
   - component: {fileID: 674953885}
   m_Layer: 9
-  m_Name: Moving Platform
+  m_Name: Platform
   m_TagString: Through
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1150,21 +1163,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 46a83c85dde1ac249baffc29a989379a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  collisionMask:
-    serializedVersion: 2
-    m_Bits: 0
-  skinWidth: 0.015
-  dstBetweenRays: 0.25
-  boxCollider: {fileID: 0}
-  horizontalRayCount: 0
-  verticalRayCount: 0
-  horizontalRaySpacing: 0
-  verticalRaySpacing: 0
-  boundsWidth: 0
-  boundsHeight: 0
-  passengerMask:
-    serializedVersion: 2
-    m_Bits: 256
   localWaypoints: []
   speed: 0
   cyclic: 0
@@ -1381,6 +1379,7 @@ GameObject:
   - component: {fileID: 909861539}
   - component: {fileID: 909861538}
   - component: {fileID: 909861543}
+  - component: {fileID: 909861544}
   m_Layer: 10
   m_Name: Enemy
   m_TagString: Enemy
@@ -1445,7 +1444,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 10303, guid: 0000000000000000f000000000000000, type: 0}
+  - {fileID: 2100000, guid: 096e5cd03e9bd5046a7b94ced2f9bcda, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -1487,7 +1486,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 21
+  m_RootOrder: 19
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &909861543
 MonoBehaviour:
@@ -1517,6 +1516,33 @@ MonoBehaviour:
   slidingDownMaxSlope: 0
   forceFall: 0
   maxSlopeAngle: 80
+--- !u!114 &909861544
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 909861537}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d232c8155c3ab6a4fbd7088af4cdd349, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  collisionMask:
+    serializedVersion: 2
+    m_Bits: 0
+  skinWidth: 0.015
+  dstBetweenRays: 0.25
+  boxCollider: {fileID: 0}
+  horizontalRayCount: 0
+  verticalRayCount: 0
+  horizontalRaySpacing: 0
+  verticalRaySpacing: 0
+  boundsWidth: 0
+  boundsHeight: 0
+  passengerMask:
+    serializedVersion: 2
+    m_Bits: 256
 --- !u!1 &1115999582
 GameObject:
   m_ObjectHideFlags: 3
@@ -1726,9 +1752,9 @@ GameObject:
   - component: {fileID: 1186770753}
   - component: {fileID: 1186770752}
   - component: {fileID: 1186770751}
-  m_Layer: 10
-  m_Name: Enemy (2)
-  m_TagString: Enemy
+  m_Layer: 11
+  m_Name: Ally
+  m_TagString: Ally
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -1818,7 +1844,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 10303, guid: 0000000000000000f000000000000000, type: 0}
+  - {fileID: 2100000, guid: c55e7d7f1d78d9649abf861358c5ea8f, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -2388,6 +2414,7 @@ GameObject:
   - component: {fileID: 1506478936}
   - component: {fileID: 1506478935}
   - component: {fileID: 1506478934}
+  - component: {fileID: 1506478939}
   m_Layer: 9
   m_Name: Moving Platform (3)
   m_TagString: Through
@@ -2407,21 +2434,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 46a83c85dde1ac249baffc29a989379a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  collisionMask:
-    serializedVersion: 2
-    m_Bits: 0
-  skinWidth: 0.015
-  dstBetweenRays: 0.25
-  boxCollider: {fileID: 0}
-  horizontalRayCount: 0
-  verticalRayCount: 0
-  horizontalRaySpacing: 0
-  verticalRaySpacing: 0
-  boundsWidth: 0
-  boundsHeight: 0
-  passengerMask:
-    serializedVersion: 2
-    m_Bits: 1280
   localWaypoints:
   - {x: 0, y: 0, z: 0}
   - {x: -4, y: 0, z: 0}
@@ -2516,8 +2528,35 @@ Transform:
   m_LocalScale: {x: 0.25, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 20
+  m_RootOrder: 22
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1506478939
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1506478933}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d232c8155c3ab6a4fbd7088af4cdd349, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  collisionMask:
+    serializedVersion: 2
+    m_Bits: 0
+  skinWidth: 0.015
+  dstBetweenRays: 0.25
+  boxCollider: {fileID: 0}
+  horizontalRayCount: 0
+  verticalRayCount: 0
+  horizontalRaySpacing: 0
+  verticalRaySpacing: 0
+  boundsWidth: 0
+  boundsHeight: 0
+  passengerMask:
+    serializedVersion: 2
+    m_Bits: 1280
 --- !u!1 &1544271628
 GameObject:
   m_ObjectHideFlags: 0
@@ -2531,6 +2570,7 @@ GameObject:
   - component: {fileID: 1544271631}
   - component: {fileID: 1544271630}
   - component: {fileID: 1544271629}
+  - component: {fileID: 1544271634}
   m_Layer: 9
   m_Name: Moving Platform (4)
   m_TagString: Through
@@ -2550,24 +2590,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 46a83c85dde1ac249baffc29a989379a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  collisionMask:
-    serializedVersion: 2
-    m_Bits: 0
-  skinWidth: 0.015
-  dstBetweenRays: 0.25
-  boxCollider: {fileID: 0}
-  horizontalRayCount: 0
-  verticalRayCount: 0
-  horizontalRaySpacing: 0
-  verticalRaySpacing: 0
-  boundsWidth: 0
-  boundsHeight: 0
-  passengerMask:
-    serializedVersion: 2
-    m_Bits: 1280
   localWaypoints:
   - {x: 0, y: 0, z: 0}
   - {x: -4, y: 0, z: 0}
+  - {x: -6, y: 4, z: 0}
+  - {x: 0, y: 4, z: 0}
   speed: 2
   cyclic: 1
   waitTime: 0
@@ -2656,11 +2683,38 @@ Transform:
   m_GameObject: {fileID: 1544271628}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 4.99, y: 8.88, z: 0}
-  m_LocalScale: {x: 2, y: 0.25, z: 1}
+  m_LocalScale: {x: 4, y: 0.25, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 24
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1544271634
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1544271628}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d232c8155c3ab6a4fbd7088af4cdd349, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  collisionMask:
+    serializedVersion: 2
+    m_Bits: 0
+  skinWidth: 0.015
+  dstBetweenRays: 0.25
+  boxCollider: {fileID: 0}
+  horizontalRayCount: 0
+  verticalRayCount: 0
+  horizontalRaySpacing: 0
+  verticalRaySpacing: 0
+  boundsWidth: 0
+  boundsHeight: 0
+  passengerMask:
+    serializedVersion: 2
+    m_Bits: 2304
 --- !u!1 &1642219835
 GameObject:
   m_ObjectHideFlags: 0
@@ -2849,6 +2903,7 @@ GameObject:
   - component: {fileID: 1691578943}
   - component: {fileID: 1691578942}
   - component: {fileID: 1691578941}
+  - component: {fileID: 1691578946}
   m_Layer: 9
   m_Name: Moving Platform (2)
   m_TagString: Through
@@ -2868,21 +2923,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 46a83c85dde1ac249baffc29a989379a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  collisionMask:
-    serializedVersion: 2
-    m_Bits: 0
-  skinWidth: 0.015
-  dstBetweenRays: 0.1
-  boxCollider: {fileID: 0}
-  horizontalRayCount: 0
-  verticalRayCount: 0
-  horizontalRaySpacing: 0
-  verticalRaySpacing: 0
-  boundsWidth: 0
-  boundsHeight: 0
-  passengerMask:
-    serializedVersion: 2
-    m_Bits: 1280
   localWaypoints:
   - {x: 0, y: 0, z: 0}
   - {x: 0, y: 2, z: 0}
@@ -2979,8 +3019,35 @@ Transform:
   m_LocalScale: {x: 3, y: 0.25, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 19
+  m_RootOrder: 20
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1691578946
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1691578940}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d232c8155c3ab6a4fbd7088af4cdd349, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  collisionMask:
+    serializedVersion: 2
+    m_Bits: 0
+  skinWidth: 0.015
+  dstBetweenRays: 0.25
+  boxCollider: {fileID: 0}
+  horizontalRayCount: 0
+  verticalRayCount: 0
+  horizontalRaySpacing: 0
+  verticalRaySpacing: 0
+  boundsWidth: 0
+  boundsHeight: 0
+  passengerMask:
+    serializedVersion: 2
+    m_Bits: 1280
 --- !u!1 &1822950371
 GameObject:
   m_ObjectHideFlags: 0
