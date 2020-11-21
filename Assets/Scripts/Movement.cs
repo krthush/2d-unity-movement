@@ -1,12 +1,12 @@
 ﻿/*
- * Script adjusts object's intended displacement based on collision detection from raycasts
+ * Script adjusts object's intended displacement (i.e. movement) based on collision detection from raycasts
  * Collision happens with objects with the relevant layermask
  */
 
 using UnityEngine;
 using System.Collections.Generic;
 
-public class ObjectDisplacement : ColliderCasts
+public class Movement : ColliderCasts
 {
 
 	[HideInInspector] public CollisionDirection collisionDirection;

@@ -6,7 +6,7 @@
 
 using UnityEngine;
 
-[RequireComponent(typeof(ObjectDisplacement))]
+[RequireComponent(typeof(Movement))]
 public class PlayerVelocity : MonoBehaviour
 {
 
@@ -33,7 +33,7 @@ public class PlayerVelocity : MonoBehaviour
 	private Vector3 oldVelocity;
 	private float velocityXSmoothing;
 
-	private ObjectDisplacement playerMovement;
+	private Movement playerMovement;
 
 	private Vector2 directionalInput;
 	private bool wallContact;
@@ -41,7 +41,7 @@ public class PlayerVelocity : MonoBehaviour
 
 	void Start()
 	{
-		playerMovement = GetComponent<ObjectDisplacement>();
+		playerMovement = GetComponent<Movement>();
 
 		// see suvat calculations; s = ut + 1/2at^2, v^2 = u^2 + 2at, where u=0, scalar looking at only y dir
 		gravity = -(2 * maxJumpHeight) / Mathf.Pow(timeToJumpApex, 2);

@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
 
-public class MovingObject : ColliderCasts
+public class MovingPlatform : ColliderCasts
 {
 
 	public LayerMask passengerMask;
@@ -20,7 +20,7 @@ public class MovingObject : ColliderCasts
 	float nextMoveTime;
 
 	List<PassengerMovement> passengerMovement;
-	Dictionary<Transform, PlatformMovable> passengerDictionary = new Dictionary<Transform, PlatformMovable>();
+	Dictionary<Transform, Passenger> passengerDictionary = new Dictionary<Transform, Passenger>();
 
 	public override void Start()
 	{
@@ -39,12 +39,12 @@ public class MovingObject : ColliderCasts
 
 		if (globalWaypoints.Length > 0)
 		{
-			Vector3 velocity = CalculatePlatformMovement();
+			Vector3 displacement = CalculatePlatformMovement();
 
-			CalculatePassengerMovement(velocity);
+			CalculatePassengerMovement(displacement);
 
 			MovePassengers(true);
-			transform.Translate(velocity);
+			transform.Translate(displacement);
 			MovePassengers(false);
 		}
 	}
@@ -97,28 +97,28 @@ public class MovingObject : ColliderCasts
 		{
 			if (!passengerDictionary.ContainsKey(passenger.transform))
 			{
-				passengerDictionary.Add(passenger.transform, passenger.transform.GetComponent<PlatformMovable>());
+				passengerDictionary.Add(passenger.transform, passenger.transform.GetComponent<Passenger>());
 			}
 
 			if (passenger.moveBeforePlatform == beforeMovePlatform)
 			{
-				passengerDictionary[passenger.transform].Move(passenger.velocity, passenger.standingOnPlatform);
+				passengerDictionary[passenger.transform].Move(passenger.displacement, passenger.standingOnPlatform);
 			}
 		}
 	}
 
-	void CalculatePassengerMovement(Vector3 velocity)
+	void CalculatePassengerMovement(Vector3 displacement)
 	{
 		HashSet<Transform> movedPassengers = new HashSet<Transform>();
 		passengerMovement = new List<PassengerMovement>();
 
-		float directionX = Mathf.Sign(velocity.x);
-		float directionY = Mathf.Sign(velocity.y);
+		float directionX = Mathf.Sign(displacement.x);
+		float directionY = Mathf.Sign(displacement.y);
 
         // Vertically moving platform
-        if (velocity.y != 0)
+        if (displacement.y != 0)
         {
-            float rayLength = Mathf.Abs(velocity.y);
+            float rayLength = Mathf.Abs(displacement.y);
 
             Vector2 boxRayOrigin = (directionY == -1) ? boxCastOrigins.bottomCenter : boxCastOrigins.topCenter;
             Vector2 boxCastSize = new Vector2(boundsWidth, skinWidth);
@@ -136,8 +136,8 @@ public class MovingObject : ColliderCasts
                     {
                         movedPassengers.Add(hit.transform);
 
-                        float pushX = (directionY == 1) ? velocity.x : 0;
-                        float pushY = velocity.y - (hit.distance) * directionY;
+                        float pushX = (directionY == 1) ? displacement.x : 0;
+                        float pushY = displacement.y - (hit.distance) * directionY;
 
                         passengerMovement.Add(new PassengerMovement(hit.transform, new Vector3(pushX, pushY), directionY == 1, true));
                     }
@@ -146,9 +146,9 @@ public class MovingObject : ColliderCasts
         }
 
         // Horizontally moving platform
-        if (velocity.x != 0)
+        if (displacement.x != 0)
         {
-            float rayLength = Mathf.Abs(velocity.x);
+            float rayLength = Mathf.Abs(displacement.x);
 
             Vector2 boxRayOrigin = (directionX == -1) ? boxCastOrigins.leftCenter : boxCastOrigins.rightCenter;
             Vector2 boxCastSize = new Vector2(skinWidth, boundsHeight);
@@ -166,7 +166,7 @@ public class MovingObject : ColliderCasts
                     {
                         movedPassengers.Add(hit.transform);
 
-                        float pushX = velocity.x - (hit.distance - skinWidth) * directionX;
+                        float pushX = displacement.x - (hit.distance - skinWidth) * directionX;
                         float pushY = -skinWidth;
 
                         passengerMovement.Add(new PassengerMovement(hit.transform, new Vector3(pushX, pushY), false, true));
@@ -176,7 +176,7 @@ public class MovingObject : ColliderCasts
         }
 
         // Passenger on top of a horizontally or downward moving platform
-        if (directionY == -1 || velocity.y == 0 && velocity.x != 0)
+        if (directionY == -1 || displacement.y == 0 && displacement.x != 0)
         {
             Vector2 boxCastSize = new Vector2(boundsWidth, skinWidth);
             ContactFilter2D contactFilter2D = new ContactFilter2D();
@@ -192,8 +192,8 @@ public class MovingObject : ColliderCasts
                     if (!movedPassengers.Contains(hit.transform))
                     {
                         movedPassengers.Add(hit.transform);
-                        float pushX = velocity.x;
-                        float pushY = velocity.y;
+                        float pushX = displacement.x;
+                        float pushY = displacement.y;
 
                         passengerMovement.Add(new PassengerMovement(hit.transform, new Vector3(pushX, pushY), true, false));
                     }
@@ -205,14 +205,14 @@ public class MovingObject : ColliderCasts
 	struct PassengerMovement
 	{
 		public Transform transform;
-		public Vector3 velocity;
+		public Vector3 displacement;
 		public bool standingOnPlatform;
 		public bool moveBeforePlatform;
 
-		public PassengerMovement(Transform _transform, Vector3 _velocity, bool _standingOnPlatform, bool _moveBeforePlatform)
+		public PassengerMovement(Transform _transform, Vector3 _displacement, bool _standingOnPlatform, bool _moveBeforePlatform)
 		{
 			transform = _transform;
-			velocity = _velocity;
+			displacement = _displacement;
 			standingOnPlatform = _standingOnPlatform;
 			moveBeforePlatform = _moveBeforePlatform;
 		}
