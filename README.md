@@ -4,8 +4,7 @@
 Unity project focused on building a solid foundation for 2d movement - feel free to use it!
 ## Features:
 
-✅ No rigidbodies / 2d physics (tight controls) <br> ✅ Horizontal and vertical collisions
-✅ Ascend and descend slopes (constant speed) <br> ✅ Variable jump height <br> ✅ Wall jumps <br> ✅ Wall sliding <br> ✅ Wall grab <br> ✅ Slide down steep slopes <br> ✅ Jump through platforms <br> ✅ Moving platforms (moves passengers as well)
+✅ No rigidbodies / 2d physics (tight controls) <br>✅ Horizontal and vertical collisions <br>✅ Ascend and descend slopes (constant speed) <br>✅ Variable jump height <br>✅ Wall jumps <br>✅ Wall sliding <br>✅ Wall grab <br>✅ Slide down steep slopes <br>✅ Jump through platforms <br>✅ Moving platforms (moves passengers as well)
 
 ## Controls:
 A/D: Left/Right Movement
