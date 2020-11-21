@@ -69,8 +69,6 @@ public class ColliderCasts : MonoBehaviour
 	public void UpdateBoxCastOrigins()
 	{
 		Bounds bounds = boxCollider.bounds;
-		// Skin width for ray detection even when boxCollider is flush against surfaces
-		bounds.Expand(skinWidth * -2);
 
 		boxCastOrigins.bottomCenter = new Vector2(bounds.center.x, bounds.min.y);
 		boxCastOrigins.topCenter = new Vector2(bounds.center.x, bounds.max.y);

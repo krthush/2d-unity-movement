@@ -4,7 +4,7 @@
  */
 
 using UnityEngine;
-using System.Collections;
+using System.Collections.Generic;
 
 public class ObjectDisplacement : ColliderCasts
 {
@@ -23,7 +23,6 @@ public class ObjectDisplacement : ColliderCasts
 	private bool passThroughPlatform = false;
 	private bool ascendSlope = false;
 	private bool descendSlope = false;
-	private int attemptingMaxSlopeEdgeClimb = 0;
 
 	public override void Start()
 	{
@@ -38,15 +37,6 @@ public class ObjectDisplacement : ColliderCasts
 		ResetDetection();
 
 		objectInput = input;
-
-		// Clamp movement if trying to move into max slope edge, reset otherwise
-		if (attemptingMaxSlopeEdgeClimb != 0 && attemptingMaxSlopeEdgeClimb == Mathf.Sign(displacement.x) && displacement.y <= 0)
-		{
-			displacement.x = 0;
-		} else
-		{
-			attemptingMaxSlopeEdgeClimb = 0;
-		}
 
 		if (displacement.y < 0)
 		{
@@ -64,11 +54,6 @@ public class ObjectDisplacement : ColliderCasts
         if (displacement.y != 0)
 		{
             CheckVerticalCollisions(ref displacement);
-			// Also check change in slope and adjust displacement to prevent staggered movement between angle change
-			if (ascendSlope)
-			{
-                CheckChangeInSlope(ref displacement);
-            }
         }
 
 		transform.Translate(displacement);
@@ -83,6 +68,7 @@ public class ObjectDisplacement : ColliderCasts
 	void ResetDetection()
 	{
 		UpdateRaycastOrigins();
+		UpdateBoxCastOrigins();
 		collisionDirection.Reset();
 		collisionAngle.Reset();
 		ascendSlope = false;
@@ -93,142 +79,163 @@ public class ObjectDisplacement : ColliderCasts
 	void CheckHorizontalCollisions(ref Vector2 displacement)
 	{
 		float directionX = faceDirection;
-		float rayLength = Mathf.Abs(displacement.x) + skinWidth;
+		float rayLength = Mathf.Abs(displacement.x);
 
-		if (Mathf.Abs(displacement.x) < skinWidth)
-		{
-			rayLength = 2 * skinWidth;
-		}
+        Vector2 boxRayOrigin = (directionX == -1) ? boxCastOrigins.leftCenter : boxCastOrigins.rightCenter;
+		boxRayOrigin -= Vector2.right * directionX * skinWidth;
+		Vector2 boxCastSize = new Vector2(skinWidth, boundsHeight);
+        ContactFilter2D contactFilter2D = new ContactFilter2D();
+        contactFilter2D.SetLayerMask(collisionMask);
+        List<RaycastHit2D> results = new List<RaycastHit2D>();
 
-		for (int i = 0; i < horizontalRayCount; i++)
-		{
-			// Send out rays to check for collisions for given layer in y dir, starting based on whether travelling up/down
-			Vector2 rayOrigin = (directionX == -1) ? raycastOrigins.bottomLeft : raycastOrigins.bottomRight;
-			rayOrigin += Vector2.up * (horizontalRaySpacing * i);
-			RaycastHit2D hit = Physics2D.Raycast(rayOrigin, Vector2.right * directionX, rayLength, collisionMask);
+        Physics2D.BoxCast(boxRayOrigin, boxCastSize, 0, Vector2.right * directionX, contactFilter2D, results, rayLength);
 
-			if (hit)
-			{
-				// Shows green ray if hit detected
-				Debug.DrawRay(rayOrigin, Vector2.right * directionX, Color.green);
+        for (int i = 0; i < results.Count; i++)
+        {
+            RaycastHit2D hit = results[i];
+            if (hit)
+            {
 
-				if (hit.distance == 0)
-				{
-					continue;
-				}
+                if (hit.collider.tag == "Through")
+                {
+                    continue;
+                }
 
-				if (hit.collider.tag == "Through")
-				{
-					break;
-				}
+                float slopeAngle = Vector2.Angle(hit.normal, Vector2.up);
+                collisionAngle.setSlopeAngle(slopeAngle, hit.normal);
 
-				float slopeAngle = Vector2.Angle(hit.normal, Vector2.up);
-				collisionAngle.setSlopeAngle(slopeAngle, hit.normal);
-
-				// Calc slope movement logic when first ray hit is an allowed angled
-				if (i == 0 && slopeAngle <= maxSlopeAngle)
-				{
-					if (descendSlope)
-					{
-						descendSlope = false;
+                // Calc slope movement logic when first ray hit is an allowed angled
+                if (slopeAngle <= maxSlopeAngle)
+                {
+                    if (descendSlope)
+                    {
+                        descendSlope = false;
                     }
-					CheckSlopeAscent(ref displacement, slopeAngle);
-				}
+                    CheckSlopeAscent(ref displacement, slopeAngle);
+                }
 
-				if (!ascendSlope || slopeAngle > maxSlopeAngle)
-				{
-					// Move object to just before the hit ray
-					bool wallHit = (wallAngle - wallTolerence < slopeAngle) && (slopeAngle < wallAngle + wallTolerence);
-					if (wallHit)
-					{
-						displacement.x = (hit.distance - skinWidth) * directionX;
-					} else
-					{
-						// double skin with to prevent overshooting/incorrect movement when hit a slope that is above object
-						displacement.x = (hit.distance - skinWidth * 2) * directionX;
-					}
-					// Adjust ray length to make sure future rays don't lead to further movement past current hit
-					rayLength = hit.distance;
+                if (!ascendSlope || slopeAngle > maxSlopeAngle)
+                {
+                    displacement.x = hit.distance * directionX;
+                    // Adjust ray length to make sure future rays don't lead to further movement past current hit
 
-					// Apparent problem arises if slow down during slope rise - check if different speeds used in future
-					//displacement.x = Mathf.Min(Mathf.Abs(displacement.x), (hit.distance - skinWidth)) * directionX;
-					//rayLength = Mathf.Min(Mathf.Abs(displacement.x) + skinWidth, hit.distance);
+                    // Adjust y accordingly using tan(angle) = O/A, to sit correctly on slope when wall hit
+                    if (ascendSlope)
+                    {
+                        displacement.y = Mathf.Tan(collisionAngle.slopeAngle * Mathf.Deg2Rad) * Mathf.Abs(displacement.x);
+                    }
 
-					// Adjust y accordingly using tan(angle) = O/A, to sit correctly on slope when wall hit
-					if (ascendSlope)
-					{
-						displacement.y = Mathf.Tan(collisionAngle.slopeAngle * Mathf.Deg2Rad) * Mathf.Abs(displacement.x);
-					}
-
-					collisionDirection.left = directionX == -1;
-					collisionDirection.right = directionX == 1;
-				}
-			} else
-			{
-				// Draw remaining rays being checked
-				Debug.DrawRay(rayOrigin, Vector2.right * directionX, Color.red);
-			}
-		}
-	}
+                    collisionDirection.left = directionX == -1;
+                    collisionDirection.right = directionX == 1;
+                }
+            }
+        }
+    }
 
 	void CheckVerticalCollisions(ref Vector2 displacement)
 	{
 		float directionY = Mathf.Sign(displacement.y);
 		float rayLength = Mathf.Abs(displacement.y) + skinWidth;
 
-		for (int i = 0; i < verticalRayCount; i++)
-		{
-			// Send out rays to check for collisions for given layer in y dir, starting based on whether travelling up/down
-			Vector2 rayOrigin = (directionY == -1) ? raycastOrigins.bottomLeft : raycastOrigins.topLeft;
-			// Note additional distance from movement in x dir needed to adjust rayOrigin correctly
-			rayOrigin += Vector2.right * (verticalRaySpacing * i + displacement.x);
-			RaycastHit2D hit = Physics2D.Raycast(rayOrigin, Vector2.up * directionY, rayLength, collisionMask);
+        //Vector2 boxRayOrigin = (directionY == -1) ? boxCastOrigins.bottomCenter : boxCastOrigins.topCenter;
+        //boxRayOrigin -= Vector2.up * directionY * skinWidth;
+        //Vector2 boxCastSize = new Vector2(boundsWidth, skinWidth);
+        //ContactFilter2D contactFilter2D = new ContactFilter2D();
+        //contactFilter2D.SetLayerMask(collisionMask);
+        //List<RaycastHit2D> results = new List<RaycastHit2D>();
 
-			if (hit)
-			{
-				// Shows green ray if hit detected
-				Debug.DrawRay(rayOrigin, Vector2.up * directionY, Color.green);
+        //Physics2D.BoxCast(boxRayOrigin, boxCastSize, 0, Vector2.up * directionY, contactFilter2D, results, rayLength);
 
-				if (hit.collider.tag == "Through")
-				{
-					if (directionY == 1 || hit.distance == 0)
-					{
-						continue;
-					}
-					if (passThroughPlatform)
-					{
-						continue;
-					}
-					if (objectInput.y == -1)
-					{
-						passThroughPlatform = true;
-						Invoke("ResetPassThroughPlatform", .5f);
-						continue;
-					}
-				}
-				
-				// Move object to just before the hit ray
-				displacement.y = (hit.distance - skinWidth) * directionY;
-				// Adjust ray length to make sure future rays don't lead to further movement past current hit
-				rayLength = hit.distance;
+        //for (int i = 0; i < results.Count; i++)
+        //{
+        //	RaycastHit2D hit = results[i];
+        //	if (hit)
+        //	{
+        //		if (hit.collider.tag == "Through")
+        //		{
+        //			if (directionY == 1 || hit.distance == 0)
+        //			{
+        //				continue;
+        //			}
+        //			if (passThroughPlatform)
+        //			{
+        //				continue;
+        //			}
+        //			if (objectInput.y == -1)
+        //			{
+        //				passThroughPlatform = true;
+        //				Invoke("ResetPassThroughPlatform", .5f);
+        //				continue;
+        //			}
+        //		}
 
-				// Adjust x accordingly using tan(angle) = O/A, to prevent further ascend when ceiling hit
-				if (ascendSlope)
-				{
-					displacement.x = displacement.y / Mathf.Tan(collisionAngle.slopeAngle * Mathf.Deg2Rad) * Mathf.Sign(displacement.x);
-				}
+        //		// Move object to just before the hit ray
+        //		displacement.y = hit.distance * directionY;
 
-				collisionDirection.below = directionY == -1;
-				collisionDirection.above = directionY == 1;
-			}
-			else
-			{
-				// Draw remaining rays being checked
-				Debug.DrawRay(rayOrigin, Vector2.up * directionY, Color.red);
-			}
-		}
+        //		// Adjust x accordingly using tan(angle) = O/A, to prevent further ascend when ceiling hit
+        //		if (ascendSlope)
+        //		{
+        //			displacement.x = displacement.y / Mathf.Tan(collisionAngle.slopeAngle * Mathf.Deg2Rad) * Mathf.Sign(displacement.x);
+        //		}
 
-	}
+        //		collisionDirection.below = directionY == -1;
+        //		collisionDirection.above = directionY == 1;
+        //	}
+        //}
+
+        for (int i = 0; i < verticalRayCount; i++)
+        {
+            // Send out rays to check for collisions for given layer in y dir, starting based on whether travelling up/down
+            Vector2 rayOrigin = (directionY == -1) ? raycastOrigins.bottomLeft : raycastOrigins.topLeft;
+            // Note additional distance from movement in x dir needed to adjust rayOrigin correctly
+            rayOrigin += Vector2.right * (verticalRaySpacing * i + displacement.x);
+            RaycastHit2D hit = Physics2D.Raycast(rayOrigin, Vector2.up * directionY, rayLength, collisionMask);
+
+            if (hit)
+            {
+                // Shows green ray if hit detected
+                Debug.DrawRay(rayOrigin, Vector2.up * directionY, Color.green);
+
+                if (hit.collider.tag == "Through")
+                {
+                    if (directionY == 1 || hit.distance == 0)
+                    {
+                        continue;
+                    }
+                    if (passThroughPlatform)
+                    {
+                        continue;
+                    }
+                    if (objectInput.y == -1)
+                    {
+                        passThroughPlatform = true;
+                        Invoke("ResetPassThroughPlatform", .5f);
+                        continue;
+                    }
+                }
+
+                // Move object to just before the hit ray
+                displacement.y = (hit.distance - skinWidth) * directionY;
+                // Adjust ray length to make sure future rays don't lead to further movement past current hit
+                rayLength = hit.distance;
+
+                // Adjust x accordingly using tan(angle) = O/A, to prevent further ascend when ceiling hit
+                if (ascendSlope)
+                {
+                    displacement.x = displacement.y / Mathf.Tan(collisionAngle.slopeAngle * Mathf.Deg2Rad) * Mathf.Sign(displacement.x);
+                }
+
+                collisionDirection.below = directionY == -1;
+                collisionDirection.above = directionY == 1;
+            }
+            else
+            {
+                // Draw remaining rays being checked
+                Debug.DrawRay(rayOrigin, Vector2.up * directionY, Color.red);
+            }
+        }
+
+    }
 
 	void ResetPassThroughPlatform()
 	{
@@ -253,34 +260,6 @@ public class ObjectDisplacement : ColliderCasts
 			displacement.x = Mathf.Cos(slopeAngle * Mathf.Deg2Rad) * moveDistance * Mathf.Sign(displacement.x);
 			collisionDirection.below = true;
 			ascendSlope = true;
-		}
-	}
-
-	/// <summary>
-	/// Fire additional ray to check if there is about to be change in slope angle in the next frame
-	/// Adjust displacement.x in advance so that there is a smooth transition
-	/// </summary>
-	void CheckChangeInSlope(ref Vector2 displacement)
-	{
-		float directionX = Mathf.Sign(displacement.x);
-		float rayLength = Mathf.Abs(displacement.x) + skinWidth;
-		Vector2 rayOrigin = ((directionX == -1) ? raycastOrigins.bottomLeft : raycastOrigins.bottomRight) + Vector2.up * displacement.y;
-		RaycastHit2D hit = Physics2D.Raycast(rayOrigin, Vector2.right * directionX, rayLength, collisionMask);
-
-		if (hit)
-		{
-			// Check angle against previous frame, if not matching move towards hit
-			float slopeAngle = Vector2.Angle(hit.normal, Vector2.up);
-			if (slopeAngle != collisionAngle.slopeAngle)
-			{
-				displacement.x = (hit.distance - skinWidth) * directionX;
-			}
-			collisionAngle.setSlopeAngle(slopeAngle, hit.normal);
-			// Check if a max slope edge is hit to clamp movement - prevent judder
-			if (slopeAngle > maxSlopeAngle)
-			{
-				attemptingMaxSlopeEdgeClimb = (int) directionX;
-			}
 		}
 	}
 
