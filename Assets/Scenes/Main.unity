@@ -2179,7 +2179,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   collisionMask:
     serializedVersion: 2
-    m_Bits: 1536
+    m_Bits: 512
   skinWidth: 0.015
   dstBetweenRays: 0.2
   boxCollider: {fileID: 0}
