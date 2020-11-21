@@ -109,8 +109,6 @@ public class ObjectDisplacement : ColliderCasts
 
 			if (hit)
 			{
-				//Debug.Break();
-
 				// Shows green ray if hit detected
 				Debug.DrawRay(rayOrigin, Vector2.right * directionX, Color.green);
 

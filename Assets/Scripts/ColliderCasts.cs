@@ -24,8 +24,8 @@ public class ColliderCasts : MonoBehaviour
 	public RaycastOrigins raycastOrigins;
 	public BoxCastOrigins boxCastOrigins;
 
-	public float boundsWidth;
-	public float boundsHeight;
+	[HideInInspector] public float boundsWidth;
+	[HideInInspector] public float boundsHeight;
 
 	public virtual void Awake()
 	{
@@ -66,7 +66,7 @@ public class ColliderCasts : MonoBehaviour
 		raycastOrigins.topRight = new Vector2(bounds.max.x, bounds.max.y);
 	}
 
-	public void UpdateBoxcastOrigins()
+	public void UpdateBoxCastOrigins()
 	{
 		Bounds bounds = boxCollider.bounds;
 		// Skin width for ray detection even when boxCollider is flush against surfaces

@@ -35,7 +35,7 @@ public class MovingObject : ColliderCasts
 
 	void Update()
 	{
-		UpdateBoxcastOrigins();
+		UpdateBoxCastOrigins();
 
 		if (globalWaypoints.Length > 0)
 		{
@@ -118,7 +118,7 @@ public class MovingObject : ColliderCasts
         // Vertically moving platform
         if (velocity.y != 0)
         {
-            float rayLength = Mathf.Abs(velocity.y) + skinWidth;
+            float rayLength = Mathf.Abs(velocity.y);
 
             Vector2 boxRayOrigin = (directionY == -1) ? boxCastOrigins.bottomCenter : boxCastOrigins.topCenter;
             Vector2 boxCastSize = new Vector2(boundsWidth, skinWidth);
@@ -148,7 +148,7 @@ public class MovingObject : ColliderCasts
         // Horizontally moving platform
         if (velocity.x != 0)
         {
-            float rayLength = Mathf.Abs(velocity.x) + skinWidth;
+            float rayLength = Mathf.Abs(velocity.x);
 
             Vector2 boxRayOrigin = (directionX == -1) ? boxCastOrigins.leftCenter : boxCastOrigins.rightCenter;
             Vector2 boxCastSize = new Vector2(skinWidth, boundsHeight);
@@ -178,14 +178,12 @@ public class MovingObject : ColliderCasts
         // Passenger on top of a horizontally or downward moving platform
         if (directionY == -1 || velocity.y == 0 && velocity.x != 0)
         {
-            float rayLength = skinWidth * 2;
-
-            Vector2 boxCastSize = new Vector2(boundsWidth, rayLength);
+            Vector2 boxCastSize = new Vector2(boundsWidth, skinWidth);
             ContactFilter2D contactFilter2D = new ContactFilter2D();
             contactFilter2D.SetLayerMask(passengerMask);
             List<RaycastHit2D> results = new List<RaycastHit2D>();
 
-            Physics2D.BoxCast(boxCastOrigins.topCenter, boxCastSize, 0, Vector2.up, contactFilter2D, results, rayLength);
+            Physics2D.BoxCast(boxCastOrigins.topCenter, boxCastSize, 0, Vector2.up, contactFilter2D, results, skinWidth);
 
             results.ForEach(delegate (RaycastHit2D hit)
             {
