@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 
-public class PassengerMover : ColliderCasts
+public class PassengerMover : BoxColliderCasts
 {
     public LayerMask passengerMask;
 

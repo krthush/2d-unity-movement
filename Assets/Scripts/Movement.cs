@@ -6,7 +6,7 @@
 using UnityEngine;
 using System.Collections.Generic;
 
-public class Movement : ColliderCasts
+public class Movement : BoxColliderCasts
 {
 
 	[HideInInspector] public CollisionDirection collisionDirection;
@@ -76,16 +76,24 @@ public class Movement : ColliderCasts
 		slidingDownMaxSlope = false;
 	}
 
+	/// <summary>
+	/// Check horizontal collisions using box cast (more smooth than ray cast), if angle hit found check for ascent
+	/// </summary>
 	void CheckHorizontalCollisions(ref Vector2 displacement)
 	{
 		float directionX = faceDirection;
-		float rayLength = Mathf.Abs(displacement.x) + skinWidth;
+
+		// Use 2x skin due box cast origin being brought in 
+		float rayLength = Mathf.Abs(displacement.x) + skinWidth * 2;
 
         Vector2 boxRayOrigin = (directionX == -1) ? boxCastOrigins.leftCenter : boxCastOrigins.rightCenter;
 		boxRayOrigin -= Vector2.right * directionX * skinWidth;
-		Vector2 boxCastSize = new Vector2(skinWidth, boundsHeight);
+
+		Vector2 boxCastSize = new Vector2(skinWidth, boundsHeight - skinWidth);
+
         ContactFilter2D contactFilter2D = new ContactFilter2D();
         contactFilter2D.SetLayerMask(collisionMask);
+
         List<RaycastHit2D> results = new List<RaycastHit2D>();
 
         Physics2D.BoxCast(boxRayOrigin, boxCastSize, 0, Vector2.right * directionX, contactFilter2D, results, rayLength);
@@ -95,7 +103,6 @@ public class Movement : ColliderCasts
             RaycastHit2D hit = results[i];
             if (hit)
             {
-
                 if (hit.collider.tag == "Through")
                 {
                     continue;
@@ -132,6 +139,9 @@ public class Movement : ColliderCasts
         }
     }
 
+	/// <summary>
+	/// Check vertical collisions using ray cast - not using box cast here as it starts to interfere with horizontal box cast / slopes
+	/// </summary>
 	void CheckVerticalCollisions(ref Vector2 displacement)
 	{
 		float directionY = Mathf.Sign(displacement.y);
