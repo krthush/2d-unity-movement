@@ -1,6 +1,6 @@
 # 2d Unity Movement
 
-Unity project focused on building a solid foundation for 2d movement - feel free to use it!
+Unity project focused on building a solid foundation for 2d movement [(video demo)](https://youtu.be/SVACshnciMk) - feel free to use it!
 
 ## Features:
 
