@@ -268,7 +268,7 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 0
   skinWidth: 0.015
-  dstBetweenRays: 0.25
+  distanceBetweenRays: 0.25
   boxCollider: {fileID: 0}
   horizontalRayCount: 0
   verticalRayCount: 0
@@ -677,7 +677,7 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 512
   skinWidth: 0.015
-  dstBetweenRays: 0.25
+  distanceBetweenRays: 0.25
   boxCollider: {fileID: 0}
   horizontalRayCount: 0
   verticalRayCount: 0
@@ -909,7 +909,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 519420028}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -0.00000023841858, y: 0, z: -10}
+  m_LocalPosition: {x: -0.00000035762787, y: 0, z: -10}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
@@ -1486,7 +1486,7 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 512
   skinWidth: 0.015
-  dstBetweenRays: 0.25
+  distanceBetweenRays: 0.25
   boxCollider: {fileID: 0}
   horizontalRayCount: 0
   verticalRayCount: 0
@@ -1514,7 +1514,7 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 0
   skinWidth: 0.015
-  dstBetweenRays: 0.25
+  distanceBetweenRays: 0.25
   boxCollider: {fileID: 0}
   horizontalRayCount: 0
   verticalRayCount: 0
@@ -1757,7 +1757,7 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 512
   skinWidth: 0.015
-  dstBetweenRays: 0.25
+  distanceBetweenRays: 0.25
   boxCollider: {fileID: 0}
   horizontalRayCount: 0
   verticalRayCount: 0
@@ -2188,8 +2188,8 @@ MonoBehaviour:
   collisionMask:
     serializedVersion: 2
     m_Bits: 1536
-  skinWidth: 0.015
-  dstBetweenRays: 0.2
+  skinWidth: 0.02
+  distanceBetweenRays: 0.2
   boxCollider: {fileID: 0}
   horizontalRayCount: 0
   verticalRayCount: 0
@@ -2213,16 +2213,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f84870e07f23e5e4c9b1077b6475931f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  moveSpeed: 10
   maxJumpHeight: 3
   minJumpHeight: 2
   timeToJumpApex: 0.4
   accelerationTimeAirborne: 0.2
   accelerationTimeGrounded: 0.1
-  moveSpeed: 10
   forceFallSpeed: 20
   wallJump: {x: 15, y: 15}
   wallJumpClimb: {x: 5, y: 15}
-  wallLeap: {x: 15, y: 15}
+  wallLeapOff: {x: 15, y: 15}
   wallSlideSpeedMax: 3
   wallStickTime: 0
 --- !u!114 &1371044445
@@ -2528,7 +2528,7 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 0
   skinWidth: 0.015
-  dstBetweenRays: 0.25
+  distanceBetweenRays: 0.25
   boxCollider: {fileID: 0}
   horizontalRayCount: 0
   verticalRayCount: 0
@@ -2686,7 +2686,7 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 0
   skinWidth: 0.015
-  dstBetweenRays: 0.25
+  distanceBetweenRays: 0.25
   boxCollider: {fileID: 0}
   horizontalRayCount: 0
   verticalRayCount: 0
@@ -2865,7 +2865,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1643418143}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -0.00000023841858, y: 0, z: -10}
+  m_LocalPosition: {x: -0.00000035762787, y: 0, z: -10}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 1115999583}
@@ -3019,7 +3019,7 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 0
   skinWidth: 0.015
-  dstBetweenRays: 0.25
+  distanceBetweenRays: 0.25
   boxCollider: {fileID: 0}
   horizontalRayCount: 0
   verticalRayCount: 0
