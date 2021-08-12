@@ -2,7 +2,7 @@
 
 Unity project focused on building a solid foundation for 2d movement [(video demo)](https://youtu.be/SVACshnciMk) - feel free to use it!
 
-Last tested version of unity: 2020.1.13.f1
+**Last tested version of Unity: 2020.1.13.f1**
 
 ## Features:
 
