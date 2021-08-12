@@ -2,6 +2,8 @@
 
 Unity project focused on building a solid foundation for 2d movement [(video demo)](https://youtu.be/SVACshnciMk) - feel free to use it!
 
+Last tested version of unity: 2020.1.13.f1
+
 ## Features:
 
 ✅ No rigidbodies / No 2d physics (allows for tight controls) <br>✅ Horizontal and vertical collisions <br>✅ Ascend and descend slopes (constant speed) <br>✅ Variable jump height <br>✅ Wall jumps <br>✅ Wall sliding <br>✅ Wall grab <br>✅ Slide down steep slopes <br>✅ Jump through platforms <br>✅ Moving platforms (moves passengers as well)
@@ -63,5 +65,6 @@ Here's a quick run down of the important scripts/variables:
 
 ##
 
-This was original made following a Sebastian Lague [video series](https://www.youtube.com/watch?v=MbWK8bCAU2w&list=PLFt_AvWsXl0f0hqURlhyIoAabKPgRsqjz&index=1), but has been heavily adapted to be tighter/smoother. If you'd like to start from scratch or don't understand components of the project I'd suggest using the videos as a guide! <br>
+This was original made by following a Sebastian Lague [video series](https://www.youtube.com/watch?v=MbWK8bCAU2w&list=PLFt_AvWsXl0f0hqURlhyIoAabKPgRsqjz&index=1), but has been heavily adapted to be tighter/smoother. If you'd like to start from scratch or don't understand components of the project I'd suggest using the videos as a guide! <br>
+
 **Please feel free to post any issues or submit any pull requests and I'll get on em asap :)**
