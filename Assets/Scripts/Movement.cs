@@ -247,6 +247,17 @@ public class Movement : BoxColliderCasts
 				SlideDownMaxSlope(maxSlopeHitRight, ref displacement);
 			}
 		}
+				else if(maxSlopeHitLeft && maxSlopeHitRight)
+        {
+			if( maxSlopeHitLeft.distance < maxSlopeHitRight.distance )
+			{
+				SlideDownMaxSlope( maxSlopeHitLeft , ref displacement );
+			}
+			else
+            {
+                SlideDownMaxSlope( maxSlopeHitRight , ref displacement ); 
+            }
+        }
 
 		if (!slidingDownMaxSlope)
 		{
