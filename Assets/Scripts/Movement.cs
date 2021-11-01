@@ -247,7 +247,8 @@ public class Movement : BoxColliderCasts
 				SlideDownMaxSlope(maxSlopeHitRight, ref displacement);
 			}
 		}
-				else if(maxSlopeHitLeft && maxSlopeHitRight)
+		// Fix jittering at the end of sliding from max slope
+		else if (maxSlopeHitLeft && maxSlopeHitRight)
         {
 			if( maxSlopeHitLeft.distance < maxSlopeHitRight.distance )
 			{
